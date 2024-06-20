@@ -39,9 +39,11 @@
                                             </div>
                                             <div class="card-options d-flex flex-wrap  flex-column flex-sm-row">
                                                 <div class="btn-group ml-5 mb-2">
-                                                    <a class="btn btn-primary btn-responsive" href="{{ route('exportInventario') }}">
-                                                        <i class="fa fa-download mr-2"></i>Descargar Excel
-                                                    </a>
+                                                <form id="searchForm" action="{{ route('exportInventario') }}" method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="searchTerm" id="searchTerm">
+                                                    <input  class="btn btn-primary btn-responsive" type="submit" value="Descargar Excel">
+                                                </form>
                                                 </div>
                                                 <div class="btn-group ml-5 mb-2">
                                                     <a class="btn btn-primary  btn-responsive" data-target="#modaldemo1" data-toggle="modal" href="">
@@ -222,6 +224,8 @@
 
         searchInput.addEventListener('input', function () {
             const searchTerm = searchInput.value.toLowerCase();
+
+            document.getElementById("searchTerm").value =  searchTerm;
 
             productoRows.forEach(function (row) {
                 const textoFila = row.innerText.toLowerCase();

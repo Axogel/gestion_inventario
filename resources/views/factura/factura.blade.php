@@ -39,8 +39,17 @@
 
 <div class="invoice">
     <div class="invoice-header">
-        <h2>Factura</h2>
+        <img src=""  alt="">
+        <span>OSORIO F.P.</span>
+        <div>
+            la moda del buen vestir
+            RIF: V-23172897-6
+        </div>
     </div>
+    <P>
+        Unicentro el Angel al frente de la Iglesia el Angel - Diagonal a Bancamiga local P2M - Cel 0414-7391583 0414-70941130426-4770522- Fijo 0276-3579038 - San Cristóbal Edo. Táchira.
+    </P>
+    <br>
 
     <div class="invoice-details">
         <p><strong>Nombre:</strong> {{ $factura->name }}</p>

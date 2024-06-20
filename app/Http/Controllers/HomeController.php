@@ -15,21 +15,21 @@ class HomeController extends Controller
     {
         $this->middleware('auth');
 
-        $ultimaActualizacion = Divisa::latest('updated_at')->first();
+        // $ultimaActualizacion = Divisa::latest('updated_at')->first();
 
-        if ($ultimaActualizacion) {
-            $fechaUltimaActualizacion = Carbon::parse($ultimaActualizacion->updated_at)->toDateString();
-            $fechaHoy = now()->toDateString();
-            $last = $fechaUltimaActualizacion == $fechaHoy;
-        }
-        if($last){
-            Artisan::call('app:scraping');
-            Artisan::call('app:update-ves');
-            Artisan::call('app:happy-b');
-            Artisan::call('verificar:productos_vencidos');
-        }
-        Artisan::call('app:scraping');
-        Artisan::call('app:update-ves');
+        // if ($ultimaActualizacion) {
+        //     $fechaUltimaActualizacion = Carbon::parse($ultimaActualizacion->updated_at)->toDateString();
+        //     $fechaHoy = now()->toDateString();
+        //     $last = $fechaUltimaActualizacion == $fechaHoy;
+        // }
+        // if($last){
+        //     Artisan::call('app:scraping');
+        //     Artisan::call('app:update-ves');
+        //     Artisan::call('app:happy-b');
+        //     Artisan::call('verificar:productos_vencidos');
+        // }
+        // Artisan::call('app:scraping');
+        // Artisan::call('app:update-ves');
         Artisan::call('app:happy-b');
         Artisan::call('verificar:productos_vencidos');
         // Artisan::call('verificar:productos_vencidos');

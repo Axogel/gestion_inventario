@@ -78,6 +78,12 @@
 				</div>
 			</div>
         </div>
+        <style>
+            .page{
+                background-image: url('{{ asset('assets/images/brand/fondoCY.jpg') }}') !important;
+                background-size: cover;
+            }
+        </style>
 @endsection
 @section('js')
 @endsection

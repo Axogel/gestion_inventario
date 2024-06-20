@@ -165,9 +165,31 @@ class InventarioController extends Controller
         Inventario::find($id)->delete();
         return redirect()->route('inventario.index')->with('success','Producto Eliminado.');
     }
-    public function Exportacion(){
-        return Excel::download(new InventarioExport(), 'Productos.csv', \Maatwebsite\Excel\Excel::CSV);
+    public function Exportacion(Request $request)
+    {
+        $searchTerm = $request->input('searchTerm');
+        $query = Inventario::query();
+    
+        if ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('codigo', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('producto', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('marca', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('precio', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('talla', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('tipo', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('color', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('almacen', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('disponibilidad', 'like', '%' . $searchTerm . '%');
+            });
+        }
+    
+        $data = $query->get();
+    
+        // Devuelve una instancia de la clase InventarioExport con los datos filtrados
+        return Excel::download(new InventarioExport($data), 'Productos.csv', \Maatwebsite\Excel\Excel::CSV);
     }
+    
     public function ExportacionAlquilado(){
         return Excel::download(new AlquiladoExport(), 'Productos.csv', \Maatwebsite\Excel\Excel::CSV);
     }

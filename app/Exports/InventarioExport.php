@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Inventario;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -11,13 +12,17 @@ class InventarioExport implements FromCollection, WithHeadings, WithMapping
 {
     /**
     * @return \Illuminate\Support\Collection
-    */
+    */    
+    protected $data;
+
+    public function __construct(Collection $data)
+    {
+        $this->data = $data;
+    }
+
     public function collection()
     {
-       // dd(Inventario::select('color')->get() );
-        return Inventario::select(
-             'codigo', 'Producto', 'Marca', 'Precio', 'Talla', 'Tipo', 'Color', 'almacen', 'disponibilidad'
-             )->get();
+        return $this->data;
     }
     public function headings(): array
     {
@@ -31,12 +36,12 @@ class InventarioExport implements FromCollection, WithHeadings, WithMapping
 
         return [
             $row['codigo'],
-            $row['Producto'],
-            $row['Marca'],
-            $row['Precio'],
-            $row['Talla'],
-            $row['Tipo'],
-            $row['Color'],
+            $row['producto'],
+            $row['marca'],
+            $row['precio'],
+            $row['talla'],
+            $row['tipo'],
+            $row['color'],
             $row['almacen'],
             $row['disponibilidad'],
         ];
