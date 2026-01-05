@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,16 +12,10 @@ return new class extends Migration
     {
         Schema::create('orden_entregas', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('apellido');
-            $table->string('direccion');
-            $table->string('telefono');
-            $table->integer('abonado');
-            $table->integer('precio');
-            $table->dateTime('fecha_de_prestamo');
-            $table->dateTime('fecha_de_entrega');
-            $table->unsignedBigInteger('product_id')->nullable(); // Puedes cambiar a nullable si es opcional
-            $table->foreign('product_id')->references('codigo')->on('inventarios')->onDelete('cascade');
+            $table->string('method');
+            $table->bigInteger('subtotal');
+            $table->unsignedBigInteger('client_id')->nullable(); // Puedes cambiar a nullable si es opcional
+            $table->foreign('client_id')->references('id')->on('clientes')->onDelete('cascade');
             $table->timestamps();
         });
     }

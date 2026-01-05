@@ -3,19 +3,19 @@ use Illuminate\Support\Facades\Route;
 use App\Mail\Transfer;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Middleware\Authenticate;
-use App\Http\Controllers\{BackupController, ClienteController, DivisaController, FacturaController, HomeController,UserController,InventarioController, LibroDiarioController, LibroMayorController, NotificacionController, OfertasController, OrdenEntregaController};
+use App\Http\Controllers\{BackupController, ClienteController, DivisaController, FacturaController, HomeController, UserController, InventarioController, LibroDiarioController, LibroMayorController, NotificacionController, OfertasController, OrdenEntregaController};
 use App\Models\LibroDiario;
 
 Auth::routes();
 Route::group(['middleware' => 'auth'], function () {
-    Route::get('/dashboard',[HomeController::class, 'dashboard'])->name('dashboard');
-    Route::get('/dashboardgrap',[HomeController::class, 'dashboardgrap'])->name('dashboardgrap');
-    Route::get('/profile',[UserController::class, 'profile'] )->name('profile');
-    Route::patch('credentials', [UserController::class, 'postCredentials'] )->name('credentials');
+    Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboardgrap', [HomeController::class, 'dashboardgrap'])->name('dashboardgrap');
+    Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+    Route::patch('credentials', [UserController::class, 'postCredentials'])->name('credentials');
 });
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function () {
-    Route::get('/tours', function(){
+    Route::get('/tours', function () {
         return view('jumbotron');
     });
 });
@@ -29,9 +29,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
 });
 Route::middleware([Authenticate::class])->group(function () {
 
+
+    //new home
+    Route::get('metricas', [HomeController::class, 'metricas'])->name('metricas');
+
+    Route::get('orden/today', [OrdenEntregaController::class, 'today'])->name('orden.today');
+
     Route::resource('factura', FacturaController::class);
     Route::resource('notificacion', NotificacionController::class);
-
     Route::get('factura/create/new', [FacturaController::class, 'new'])->name('factura.new');
     Route::post('factura/storeNew/new', [FacturaController::class, 'storeNew'])->name('factura.storeNew');
 
@@ -53,7 +58,7 @@ Route::middleware([Authenticate::class])->group(function () {
     Route::get('inventario/create', [InventarioController::class, 'create'])->name('inventario.create');
     Route::post('inventario', [InventarioController::class, 'store'])->name('inventario.store');
     Route::put('inventario/{id}', [InventarioController::class, 'update'])->name('inventario.update');
-    Route::get('/gift', [InventarioController::class ,'gifts'])->name('inventario.gift');
+    Route::get('/gift', [InventarioController::class, 'gifts'])->name('inventario.gift');
     Route::post('/gift/{id}', [InventarioController::class, 'sendGift'])->name('inventario.sendGift');
     Route::post('/comegift/{id}', [InventarioController::class, 'comeBackGift'])->name('inventario.comeBackGift');
     Route::get('/gastos', [LibroDiarioController::class, 'gastos'])->name('gastos.index');
@@ -64,7 +69,7 @@ Route::middleware([Authenticate::class])->group(function () {
     Route::get('alquilado', [InventarioController::class, 'alquilado'])->name('alquilado.index');
     Route::get('disponible', [InventarioController::class, 'disponible'])->name('disponible.index');
 
- 
-    
-    
+
+
+
 });

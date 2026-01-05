@@ -6,15 +6,27 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Inventario extends Model
-{    protected $primaryKey = 'codigo';
+{
+    protected $primaryKey = 'id';
 
     protected $fillable = [
-        'codigo', 'nombre', 'marca', 'precio', 'talla','almacen', 'tipo', 'color', 'disponibilidad', 'alquiler',
+        'producto',
+        'codigo',
+        'nombre',
+        'precio',
+        'precio_sin_iva',
+        'costo',
+        'costo_sin_iva',
+        'columna2',
+        'stock',
+        'stock_min',
+        'usd_ref',
     ];
     use HasFactory;
 
-    public function ordenInventario() {
-        $this->belongsToMany(ordenEntrega::class, 'orden_entregas_productos', 'product_id ', 'orden_id ' );
+    public function ordenInventario()
+    {
+        $this->belongsToMany(ordenEntrega::class, 'orden_entregas_productos', 'product_id ', 'orden_id ');
     }
 
 }

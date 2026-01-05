@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Divisa;
+use App\Models\OrdenEntregaProducto;
 use Illuminate\Http\Request;
 use App\Models\Sale;
 use Carbon\Carbon;
@@ -41,20 +42,28 @@ class HomeController extends Controller
     }
     public function index()
     {
-    
 
-    
-        return view('dashboardgrap');
+        $metricas = OrdenEntregaController::metricas();
+
+        return view('admin.metricas', compact('metricas'));
     }
 
     public function dashboardgrap()
-    {   
-    
-        return view('dashboardgrap');
+    {
+        $metricas = OrdenEntregaController::metricas();
+
+        return view('admin.metricas', compact('metricas'));
     }
     public function dashboard()
     {
+        $metricas = OrdenEntregaController::metricas();
 
-        return view('dashboardgrap');
+        return view('admin.metricas', compact('metricas'));
+    }
+    public function metricas()
+    {
+        $metricas = OrdenEntregaController::metricas();
+
+        return view('admin.metricas', compact('metricas'));
     }
 }

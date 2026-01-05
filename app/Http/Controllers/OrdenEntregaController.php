@@ -8,7 +8,9 @@ use App\Models\Fecha;
 use App\Models\Inventario;
 use App\Models\LibroDiario;
 use App\Models\ordenEntrega;
+use App\Models\OrdenEntregaProducto;
 use Carbon\Carbon;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 
@@ -19,10 +21,66 @@ class OrdenEntregaController extends Controller
      */
     public function index()
     {
-        Artisan::call('verificar:productos_vencidos');
         $ordenes = ordenEntrega::all();
         return view('orden.index', compact('ordenes'));
-        //
+    }
+
+    public function today()
+    {
+        // whereDate filtra ignorando la hora, minutos y segundos
+        $ordenes = ordenEntrega::whereDate('created_at', Carbon::today())->get();
+
+        return view('orden.index', compact('ordenes'));
+    }
+
+
+    public static function metricas()
+    {
+        // Producto más vendido
+        $productoMasVendido = OrdenEntregaProducto::select(
+            'product_id',
+            DB::raw('SUM(cantidad) as total_vendido')
+        )
+            ->groupBy('product_id')
+            ->orderByDesc('total_vendido')
+            ->with('producto')
+            ->first();
+
+        // Órdenes totales
+        $ordenesTotales = DB::table('orden_entregas')->count();
+
+        // Facturación total (subtotal de órdenes)
+        $facturacionTotal = DB::table('orden_entregas')->sum('subtotal');
+
+        // Top 5 productos más vendidos
+        $topProductos = OrdenEntregaProducto::select(
+            'product_id',
+            DB::raw('SUM(cantidad) as total')
+        )
+            ->groupBy('product_id')
+            ->orderByDesc('total')
+            ->with('producto')
+            ->limit(5)
+            ->get();
+
+        // Inventario bajo mínimo
+        $inventarioCritico = DB::table('inventarios')
+            ->whereColumn('stock', '<=', 'stock_min')
+            ->count();
+
+        // Valor total del inventario (a costo)
+        $valorInventario = DB::table('inventarios')
+            ->select(DB::raw('SUM(stock * costo) as total'))
+            ->value('total');
+
+        return [
+            'producto_mas_vendido' => $productoMasVendido,
+            'ordenes_totales' => $ordenesTotales,
+            'facturacion_total' => $facturacionTotal,
+            'top_productos' => $topProductos,
+            'inventario_critico' => $inventarioCritico,
+            'valor_inventario' => $valorInventario,
+        ];
     }
 
     /**
@@ -32,13 +90,13 @@ class OrdenEntregaController extends Controller
     {
         $numeroId = $id;
         $clientes = Cliente::all();
-        $products = Inventario::where('disponibilidad', 1)
-        ->select('codigo', 'producto', 'precio')
-        ->get();
-  
+        $products = Inventario::where('stock', '>', 0)
+            ->select('id', 'codigo', 'producto', 'precio')
+            ->get();
+
         return view("orden.create", compact('numeroId', 'products', 'clientes'));
     }
-    
+
 
     /**
      * Store a newly created resource in storage.
@@ -46,84 +104,130 @@ class OrdenEntregaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
-            'apellido' => 'required|string',
-            'direccion' => 'required|string',
-            'telefono' => 'required|string',
-            'abonado' => 'required|numeric',
-            'inputSumaPrecio' => 'required|numeric',
-            "products" => 'required'
+            'method' => 'required|string',
+            'subtotal' => 'required|numeric|min:0',
+            'client_id' => 'nullable|exists:clientes,id',
+
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:inventarios,id',
+            'products.*.cantidad' => 'required|integer|min:1',
+
+            // validación cliente nuevo (opcional)
+            'new_client.name' => 'nullable|string',
+            'new_client.fecha_nacimiento' => 'nullable|date',
+            'new_client.telefono' => 'nullable|string',
+            'new_client.correo' => 'nullable|email',
+            'new_client.direccion' => 'nullable|string',
+            'new_client.cedula' => 'nullable|string',
         ]);
-        $arrayProducts = $request->input('products');
+        DB::transaction(function () use ($request) {
 
-            $orden = new ordenEntrega;
-            $orden->name = $request->input('name');
-            $orden->apellido = $request->input('apellido');
-            $orden->direccion = $request->input('direccion');
-            $orden->telefono = $request->input('telefono');
-            $tasa =  Divisa::where('name', $request->input('divisas') )->select('tasa')->first();
-            $orden->abonado = $request->input('abonado') / $tasa->tasa;
-            $orden->precio = $request->input('inputSumaPrecio');
-            $orden->fecha_de_prestamo = now();
-            $orden->fecha_de_entrega = now()->addDays(3);
-            $orden->save();
-            $orden->ordenInventario()->attach($arrayProducts);
-            foreach ($arrayProducts as $key => $codigo) {
-                $producto=Inventario::findOrFail($codigo);
-                $producto->disponibilidad = 0;
-                $producto->alquiler = now();
-                $producto->update();
-            }
-            $fecha = Carbon::now()->format('Y-m-d');;
+            /*
+            |--------------------------------------------------------------------------
+            | CLIENTE
+            |--------------------------------------------------------------------------
+            */
+            $clientId = $request->client_id;
 
-            $fechaExistente = Fecha::whereDate('fecha', $fecha)->first();
-            $libroMayorController = new LibroMayorController;
-    
-            if (!$fechaExistente) {
-                $fechaExistente = Fecha::create(['fecha' => $fecha]);
-            }
-    
-            //cu
-            $libroDiario = new LibroDiario;
-            $libroDiario->concepto="Falta por Pagar";
-            $libroDiario->debeIdMayor =  ["2"];
-            $libroDiario->haberIdMayor = null;
-            $libroDiario->debe = "[\"".( number_format((float)$orden->precio,2) -  number_format((float)$orden->abonado,2)  )."\"]";
-            $libroDiario->haber = "[\"0\"]";
-            $libroDiario->fecha_id = $fechaExistente->id; 
-            $libroDiario->fecha = $fecha;
-            $libroDiario->save();
-            $libroMayorController->calculateBalance('2');
-
-            //deudas
-            $libroVenta = new LibroDiario;
-            $libroVenta->concepto="Abono";
-            $libroVenta->debeIdMayor =["1"];
-            $libroVenta->haberIdMayor =  null;
-            $libroVenta->debe ="[\"". number_format((float)$orden->abonado,2)."\"]";
-            $libroVenta->haber =  "[\"0\"]";
-            $libroVenta->fecha_id = $fechaExistente->id; 
-            $libroVenta->fecha = $fecha;
-            $libroVenta->save();
-            $libroMayorController->calculateBalance('1');
-
-            
-            if(!$request->input('cliente')){
-                $client = new Cliente;
-                $client->name =   $orden->name . " " .  $orden->apellido;
-                $client->fecha_nacimiento =$request->input("fechaNacimiento");
-                $client->telefono = $request->input("telefono");
-                $client->correo =  $request->input("correo");
-                $client->direccion = $request->input("direccion");
-                $client->cedula =  $request->input("cedula");
-                $client->save();
+            if (!$clientId && $request->filled('new_client.name')) {
+                $cliente = Cliente::create($request->new_client);
+                $clientId = $cliente->id;
             }
 
-    
+            /*
+            |--------------------------------------------------------------------------
+            | ORDEN
+            |--------------------------------------------------------------------------
+            */
+            $orden = ordenEntrega::create([
+                'method' => $request->method,
+                'subtotal' => $request->subtotal,
+                'client_id' => $clientId,
+            ]);
 
-  
-            $success = array("message" => "Orden creada Satisfactoriamente", "alert" => "success");
-            return redirect()->route('orden.index')->with('success',$success);
+            /*
+            |--------------------------------------------------------------------------
+            | PRODUCTOS + DESCUENTO DE STOCK
+            |--------------------------------------------------------------------------
+            */
+            foreach ($request->products as $item) {
+
+                $producto = Inventario::lockForUpdate()->findOrFail($item['product_id']);
+
+                // Validar stock
+                if ($producto->stock < $item['cantidad']) {
+                    throw new \Exception(
+                        "Stock insuficiente para {$producto->producto}"
+                    );
+                }
+
+                // Guardar relación
+                OrdenEntregaProducto::create([
+                    'orden_id' => $orden->id,
+                    'product_id' => $producto->id,
+                    'cantidad' => $item['cantidad'],
+                ]);
+
+                // Descontar stock
+                $producto->stock -= $item['cantidad'];
+                $producto->save();
+            }
+        });
+
+        return redirect()
+            ->route('orden.index')
+            ->with('success', 'Orden creada correctamente');
+
+        $fecha = Carbon::now()->format('Y-m-d');
+
+        // $fechaExistente = Fecha::whereDate('fecha', $fecha)->first();
+        // $libroMayorController = new LibroMayorController;
+
+        // if (!$fechaExistente) {
+        //     $fechaExistente = Fecha::create(['fecha' => $fecha]);
+        // }
+
+        // //cu
+        // $libroDiario = new LibroDiario;
+        // $libroDiario->concepto = "Falta por Pagar";
+        // $libroDiario->debeIdMayor = ["2"];
+        // $libroDiario->haberIdMayor = null;
+        // $libroDiario->debe = "[\"" . (number_format((float) $orden->precio, 2) - number_format((float) $orden->abonado, 2)) . "\"]";
+        // $libroDiario->haber = "[\"0\"]";
+        // $libroDiario->fecha_id = $fechaExistente->id;
+        // $libroDiario->fecha = $fecha;
+        // $libroDiario->save();
+        // $libroMayorController->calculateBalance('2');
+
+        // //deudas
+        // $libroVenta = new LibroDiario;
+        // $libroVenta->concepto = "Abono";
+        // $libroVenta->debeIdMayor = ["1"];
+        // $libroVenta->haberIdMayor = null;
+        // $libroVenta->debe = "[\"" . number_format((float) $orden->abonado, 2) . "\"]";
+        // $libroVenta->haber = "[\"0\"]";
+        // $libroVenta->fecha_id = $fechaExistente->id;
+        // $libroVenta->fecha = $fecha;
+        // $libroVenta->save();
+        // $libroMayorController->calculateBalance('1');
+
+
+        // if (!$request->input('cliente')) {
+        //     $client = new Cliente;
+        //     $client->name = $orden->name . " " . $orden->apellido;
+        //     $client->fecha_nacimiento = $request->input("fechaNacimiento");
+        //     $client->telefono = $request->input("telefono");
+        //     $client->correo = $request->input("correo");
+        //     $client->direccion = $request->input("direccion");
+        //     $client->cedula = $request->input("cedula");
+        //     $client->save();
+        // }
+
+
+
+
+        $success = array("message" => "Orden creada Satisfactoriamente", "alert" => "success");
+        return redirect()->route('orden.index')->with('success', $success);
     }
 
     /**

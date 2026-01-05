@@ -1,34 +1,34 @@
-<table>
+<table border="1">
     <thead>
         <tr>
-            <th>Codigo</th>
-            <th>producto</th>
-            <th>Marca</th>
+            <th>Código</th>
+            <th>Producto</th>
             <th>Precio</th>
-            <th>Talla</th>
-            <th>Tipo</th>
-            <th>Color</th>
-            <th>Disponibilidad</th>
-            <th>Alquiler</th>
+            <th>Precio sin IVA</th>
+            <th>Costo</th>
+            <th>Costo sin IVA</th>
+            <th>Columna 2</th>
+            <th>Stock</th>
+            <th>Stock mínimo</th>
+            <th>USD Ref</th>
+            <th>Creado</th>
         </tr>
     </thead>
     <tbody>
         @foreach($datos as $item)
-        <tr>
-            <td>{{$item['codigo']}}</td>
-            <td>{{$item['producto']}}</td>
-            <td>{{$item['marca']}}</td>
-            <td>{{$item['precio']}}</td>
-            <td>{{$item['talla']}}</td>
-            <td>{{$item['tipo']}}</td>
-            <td>{{$item['color']}}</td>
-            @if($item['disponibilidad'] ==1)
-                <td>Disponible</td>
-            @else 
-                <td>Alquilado</td>
-             @endif
-            <td>{{$item['alquiler']}}</td>
-        </tr>
+            <tr>
+                <td>{{ $item['codigo'] }}</td>
+                <td>{{ $item['producto'] }}</td>
+                <td>{{ number_format($item['precio'], 2) }}</td>
+                <td>{{ number_format($item['precio_sin_iva'], 2) }}</td>
+                <td>{{ number_format($item['costo'], 2) }}</td>
+                <td>{{ number_format($item['costo_sin_iva'], 2) }}</td>
+                <td>{{ $item['columna2'] }}</td>
+                <td>{{ $item['stock'] }}</td>
+                <td>{{ $item['stock_min'] }}</td>
+                <td>{{ $item['usd_ref'] ?? '-' }}</td>
+                <td>{{ \Carbon\Carbon::parse($item['created_at'])->format('d/m/Y') }}</td>
+            </tr>
         @endforeach
     </tbody>
 </table>

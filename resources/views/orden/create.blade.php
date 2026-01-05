@@ -1,218 +1,267 @@
 @extends('layouts.master')
+
 @section('css')
-<!-- Select2 css -->
-<link href="{{URL::asset('assets/plugins/select2/select2.min.css')}}" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @endsection
+
 @section('page-header')
-						<!--Page header-->
-						<div class="page-header">
-							<div class="page-leftheader">
-								<h4 class="page-title">Crear Orden de Entrega</h4>
-							</div>
-							<div class="page-rightheader ml-auto d-lg-flex d-none">
-								<ol class="breadcrumb">
-									<li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="d-flex"><svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm5 15h-2v-6H9v6H7v-7.81l5-4.5 5 4.5V18z"/><path d="M7 10.19V18h2v-6h6v6h2v-7.81l-5-4.5z" opacity=".3"/></svg><span class="breadcrumb-icon"> Dashboard</span></a></li>
-									<li class="breadcrumb-item"><a href="{{ route('inventario.index') }}">Site Panel</a></li>
-									<li class="breadcrumb-item active" aria-current="page">Create Site</li>
-								</ol>
-							</div>
-						</div>
-						<!--End Page header-->
+<div class="page-header">
+    <div class="page-leftheader">
+        <h4 class="page-title">Crear Orden de Entrega</h4>
+    </div>
+</div>
 @endsection
+
 @section('content')
-                        <!-- Row -->
-                        @if(Session::has('success'))
-                            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                {{Session::get('success')}}
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-			            @endif
-                        @if($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-						<div class="row">
-							<div class="col-xl-12 col-lg-12 col-md-12">
-								<div class="card">
-                                    <div class="card-header">
-										<div class="card-title">Crear una Orden De Entrega</div>
-                                    </div>
-                                    <div class="card-body">
-                                        <form method="POST" action="{{ route('orden.store') }}"  role="form">
-                                            {{ csrf_field() }}
-                                            <div class="input-group mb-3 w-100">
-                                                <span class="card-title"> Busque al cliente registrado</span>
 
-                                                <select name="cliente" id="cliente" class="select2" style="width: 100%">
-                                                    <option value="" disabled selected>Seleccione un cliente</option>
-                                                    <option value=""  >No seleccionar</option>
+@if ($errors->any())
+<div class="alert alert-danger">
+    <ul>
+        @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
+@endif
 
-                                                    @foreach($clientes as $cliente)
-                                                        <option value="{{ $cliente->cedula }}">
-                                                            {{ $cliente->cedula }} - {{ $cliente->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                    
-                                            </div>
+<div class="card">
+    <div class="card-body">
 
-                                            
-                                            <div class="input-group mb-3">
-                                                <span class="input-group-addon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="side-menu__icon"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
-                                                <input type="text" name="name" id="name" class="form-control input-sm" placeholder="nombre">
-                                            </div>
-                                            <div class="input-group mb-3">
-                                                <span class="input-group-addon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="side-menu__icon"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
-                                                <input type="text" name="apellido" id="apellido" class="form-control input-sm" placeholder="apellido">
-                                            </div>
-                                            <div class="input-group mb-3">
-                                                <span class="input-group-addon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="side-menu__icon"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
-                                                <input type="text" name="direccion" id="direccion" class="form-control input-sm" placeholder="direccion">
-                                            </div>
-                                            <div class="input-group mb-3">
-                                                <span class="input-group-addon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="side-menu__icon"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
-                                                <input type="text" name="cedula" id="cedula" class="form-control input-sm" placeholder="cedula de identidad">
-                                            </div>
-                                            <div class="input-group mb-3">
-                                                <span class="input-group-addon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="side-menu__icon"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
-                                                <input type="email" name="correo" id="correo" class="form-control input-sm" placeholder="Correo del cliente">
-                                            </div>
-                                            <span class="card-title">Fecha de Nacimiento</span>
-                                            <div class="input-group mb-3">
-                                                <input type="date" name="fechaNacimiento" id="fechaNacimiento" class="form-control input-sm">
-                                            </div>
-                                            <div class="input-group mb-3">
-                                                <span class="input-group-addon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="side-menu__icon"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
-                                                <input type="text" name="telefono" id="telefono" class="form-control input-sm" placeholder="telefono">
-                                            </div>
+        <form method="POST" action="{{ route('orden.store') }}">
+            @csrf
 
-                                            <!-- Abonado Logic -->
-                                  
-                                            <div class="input-group mb-3 w-100">
+{{-- Cliente --}}
+<div class="mb-3">
+    <label>Cliente</label>
+    <select name="client_id" id="client_id" class="form-control select2">
+        <option value="">Cliente no registrado</option>
+        @foreach($clientes as $cliente)
+            <option value="{{ $cliente->id }}">
+                {{ $cliente->cedula }} - {{ $cliente->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
 
-                                                <span class="card-title"> Seleccione la Moneda con la que va a abonar</span>
-                                                <div class="input-group mb-3">
-                                                    <span class="input-group-addon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="side-menu__icon"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
-                                                    <input type="numeric" name="abonado" id="abonado" class="form-control input-sm" placeholder="abonado">
-                                            </div>
-
-                                                <select  class="select2 " name="divisas" id="divisas" style="width : 100%">
-                                                            <option value="Bs" selected>BS</option>
-                                                            <option value="COP">COP</option>
-                                                            <option value="USD">USD</option>
-                                                </select>
-                                            </div>
+<div class="form-check mb-3">
+    <input class="form-check-input" type="checkbox" id="new-client-check">
+    <label class="form-check-label">
+        Cliente nuevo
+    </label>
+</div>
 
 
-                                            <div class="input-group mb-3 w-100">
-                                                <span class="card-title"> Seleccione los Articulos</span>
-                                                <select name="products[]" id="products" class="select2"  multiple="multiple" style="width : 100%">
-                                                        @foreach($products as $product)
-                                                            <option value="{{ $product->codigo }}" @if($product->codigo == $numeroId) selected @endif>
-                                                                {{ $product->producto }}
-                                                            </option>
-                                                        @endforeach
-                                                </select>
-                                                    
-                                            </div>
-                                            <div class="card-title m-5" id="suma-precio">Suma del precio: $0.00</div>
-                                            <input type="hidden" id="inputSumaPrecio" name="inputSumaPrecio">
+<div id="new-client-form" style="display:none">
+    <h5>Datos del Cliente</h5>
+
+    <div class="mb-2">
+        <input type="text" name="new_client[name]" class="form-control" placeholder="Nombre completo">
+    </div>
+
+    <div class="mb-2">
+        <input type="date" name="new_client[fecha_nacimiento]" class="form-control">
+    </div>
+
+    <div class="mb-2">
+        <input type="text" name="new_client[telefono]" class="form-control" placeholder="Teléfono">
+    </div>
+
+    <div class="mb-2">
+        <input type="email" name="new_client[correo]" class="form-control" placeholder="Correo">
+    </div>
+
+    <div class="mb-2">
+        <input type="text" name="new_client[direccion]" class="form-control" placeholder="Dirección">
+    </div>
+
+    <div class="mb-2">
+        <input type="text" name="new_client[cedula]" class="form-control" placeholder="Cédula">
+    </div>
+</div>
 
 
-                            
+            {{-- Método de pago --}}
+            <div class="mb-3">
+                <label>Método de Pago</label>
+                <select name="method" class="form-control">
+                    <option value="EFECTIVO">Efectivo</option>
+                    <option value="TRANSFERENCIA">Transferencia</option>
+                    <option value="PAGO_MOVIL">Pago móvil</option>
+                </select>
+            </div>
+<div class="mb-3">
+    <label>Agregar producto por código o ID</label>
+    <input type="text" id="product-search" class="form-control"
+           placeholder="Ej: ABC123 o 15">
+</div>
 
-                                            <div class="col-xs-12">
-                                                <button type="submit" class="btn btn-lg btn-primary">Crear</button>
-                                                <a href="{{ route('orden.index') }}" class="btn btn-lg btn-danger">Cancelar</a>
-                                            </div>
-                                        </form>
-                                    </div>
-								</div>
-							</div>
-						</div>
-						<!-- End Row-->
+            {{-- Productos --}}
+            <h5>Productos</h5>
 
-					</div>
-				</div><!-- end app-content-->
-			</div>
+            <table class="table table-bordered" id="products-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th width="120">Cantidad</th>
+                        <th width="120">Precio</th>
+                        <th width="120">Subtotal</th>
+                        <th width="50"></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <button type="button" class="btn btn-sm btn-success mb-3" id="add-product">
+                + Agregar producto
+            </button>
+
+            <input type="hidden" name="subtotal" id="subtotal">
+
+            <h4>Total: <span id="total">$0.00</span></h4>
+
+            <button type="submit" class="btn btn-primary mt-3">
+                Crear Orden
+            </button>
+
+            <a href="{{ route('orden.index') }}" class="btn btn-danger mt-3">
+                Cancelar
+            </a>
+
+        </form>
+
+    </div>
+</div>
+
 @endsection
+
 @section('js')
-<!--Select2 js -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-$(document).ready(function() {
-    $('#products').on('change', function() {
-        let selectedIds = $(this).val();
-
-        let miVariableEnJS = @json($products);
-
-        let totalPrecio = 0;
-
-        miVariableEnJS.forEach(function(product) {
-            if (selectedIds.includes(product.codigo.toString())) {
-                totalPrecio += product.precio;
-            }
-        });
-
-        $('#suma-precio').text('Suma del precio: $' + totalPrecio.toFixed(2));
-        $('#inputSumaPrecio').val(totalPrecio.toFixed(2));
-
-    });
-
-    // Simular el evento 'change' al principio para realizar el cálculo inicial
-    $('#products').trigger('change');
+    
+$(document).ready(function () {
+    $('.select2').select2();
 });
 
-</script>
-<script>
-    let clientes = @json($clientes);
-    let clienteSelect;
+let products = @json($products);
+let rowIndex = 0;
+$('#product-search').on('keypress', function (e) {
+    if (e.which === 13) {
+        e.preventDefault();
 
-    $(document).ready(function() {
-        $('#cliente').on('change', function() {
-            let selectedIds = $(this).val();
+        let value = $(this).val().trim();
+        if (!value) return;
 
-            clientes.forEach(function(cliente) {
-                if (selectedIds.includes(cliente.cedula.toString())) {
-                    clienteSelect = cliente;
-                }
-            });
+        let product = products.find(p =>
+            p.codigo === value || p.id == value
+        );
 
-            if (clienteSelect) {
-                // Separar el nombre y el apellido
-                let nombreCompleto = clienteSelect.name.split(' ');
-let nombre = nombreCompleto.shift(); // Obtiene el primer elemento (nombre)
-let apellido = nombreCompleto.join(' ');// Obtiene el resto como apellido
-                console.log(nombreCompleto,nombre, apellido,clienteSelect.name)
-                // Actualizar los elementos en el DOM
-                $('#name').val(nombre); // Usa .val() para campos de texto
-                $('#apellido').val(apellido); // Usa .val() para campos de texto
-                $('#direccion').val(clienteSelect.direccion);
-                $('#cedula').val(clienteSelect.cedula);
-                $('#fechaNacimiento').val(clienteSelect.fecha_nacimiento);
-                $('#telefono').val(clienteSelect.telefono);
-            }
-        });
+        if (!product) {
+            alert('Producto no encontrado');
+            return;
+        }
+
+        addProductRow(product);
+        $(this).val('');
+    }
+});
+
+function addProductRow(product) {
+    // si ya existe, suma cantidad
+    let existing = $(`select[value="${product.id}"]`);
+    if (existing.length) {
+        let qtyInput = existing.closest('tr').find('.cantidad');
+        qtyInput.val(parseInt(qtyInput.val()) + 1).trigger('keyup');
+        return;
+    }
+
+    let row = `
+    <tr>
+        <td>
+            <input type="hidden" name="products[${rowIndex}][product_id]" value="${product.id}">
+            ${product.codigo} - ${product.producto}
+        </td>
+        <td>
+            <input type="number" name="products[${rowIndex}][cantidad]"
+                   class="form-control cantidad" value="1" min="1">
+        </td>
+        <td class="precio">$${product.precio}</td>
+        <td class="subtotal">$${product.precio}</td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+        </td>
+    </tr>
+    `;
+
+    $('#products-table tbody').append(row);
+    rowIndex++;
+    calculateTotal();
+}
+
+
+$('#add-product').on('click', function () {
+    let row = `
+    <tr>
+        <td>
+            <select name="products[${rowIndex}][product_id]" class="form-control product-select">
+                <option value="">Seleccione</option>
+                ${products.map(p =>
+                    `<option value="${p.id}" data-price="${p.precio}">
+                        ${p.producto}
+                    </option>`
+                ).join('')}
+            </select>
+        </td>
+        <td>
+            <input type="number" name="products[${rowIndex}][cantidad]" 
+                   class="form-control cantidad" value="1" min="1">
+        </td>
+        <td class="precio">$0.00</td>
+        <td class="subtotal">$0.00</td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+        </td>
+    </tr>
+    `;
+
+    $('#products-table tbody').append(row);
+    rowIndex++;
+});
+
+$(document).on('change keyup', '.product-select, .cantidad', function () {
+    let row = $(this).closest('tr');
+    let price = row.find('.product-select option:selected').data('price') || 0;
+    let qty = row.find('.cantidad').val() || 0;
+
+    let subtotal = price * qty;
+
+    row.find('.precio').text('$' + price);
+    row.find('.subtotal').text('$' + subtotal.toFixed(2));
+
+    calculateTotal();
+});
+
+$(document).on('click', '.remove-row', function () {
+    $(this).closest('tr').remove();
+    calculateTotal();
+});
+$('#new-client-check').on('change', function () {
+    if ($(this).is(':checked')) {
+        $('#new-client-form').slideDown();
+        $('#client_id').val('').trigger('change');
+    } else {
+        $('#new-client-form').slideUp();
+    }
+});
+
+function calculateTotal() {
+    let total = 0;
+    $('.subtotal').each(function () {
+        total += parseFloat($(this).text().replace('$', '')) || 0;
     });
-</script>
 
-<script>
-    $(document).ready(function() {
-        $('.select2').select2();
-    });
+    $('#total').text('$' + total.toFixed(2));
+    $('#subtotal').val(total.toFixed(2));
+}
 </script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<!-- 
-<script src="{{URL::asset('assets/plugins/select2/select2.full.min.js')}}"></script>
-<script src="{{URL::asset('assets/js/select2.js')}}"></script> -->
 @endsection

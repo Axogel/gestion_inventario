@@ -11,8 +11,8 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 class InventarioExport implements FromCollection, WithHeadings, WithMapping
 {
     /**
-    * @return \Illuminate\Support\Collection
-    */    
+     * @return \Illuminate\Support\Collection
+     */
     protected $data;
 
     public function __construct(Collection $data)
@@ -27,23 +27,34 @@ class InventarioExport implements FromCollection, WithHeadings, WithMapping
     public function headings(): array
     {
         return [
-            'Codigo', 'Producto', 'Marca', 'Precio', 'Talla', 'Tipo', 'Color', 'almacen', 'disponibilidad'
+            'Codigo',
+            'Producto',
+            'precio',
+            'precio_sin_iva',
+            'costo',
+            'costo_sin_iva',
+            'columna2',
+            'stock',
+            'stock_min',
+            'usd_ref',
+            'created_at'
         ];
     }
     public function map($row): array
     {
-        $row['disponibilidad'] = ($row['disponibilidad'] == 1) ? 'disponible' : (($row['disponibilidad'] == 2) ? 'vendido' : 'alquilado');
 
         return [
             $row['codigo'],
             $row['producto'],
-            $row['marca'],
             $row['precio'],
-            $row['talla'],
-            $row['tipo'],
-            $row['color'],
-            $row['almacen'],
-            $row['disponibilidad'],
+            $row['precio_sin_iva'],
+            $row['costo'],
+            $row['costo_sin_iva'],
+            $row['columna2'],
+            $row['stock'],
+            $row['stock_min'],
+            $row['usd_ref'],
+            $row['created_at'],
         ];
     }
 }

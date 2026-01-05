@@ -38,17 +38,17 @@ class InventarioController extends Controller
     }
     public function alquilado()
     {
-    $inventario = Inventario::where("disponibilidad", 0)->get();
-    return view("alquilado.index", compact("inventario"));
+        $inventario = Inventario::where("disponibilidad", 0)->get();
+        return view("alquilado.index", compact("inventario"));
     }
-    public function gifts() 
+    public function gifts()
     {
         $inventario = Inventario::where("disponibilidad", 3)->get();
         return view("gift.index", compact("inventario"));
-    }   
+    }
     public function sendGift($id)
     {
-        $gift=Inventario::findOrFail($id);
+        $gift = Inventario::findOrFail($id);
         $gift->disponibilidad = 3;
         $gift->save();
         $success = array("message" => "Producto actualizado satisfactoriamente", "alert" => "success");
@@ -56,7 +56,7 @@ class InventarioController extends Controller
     }
     public function comeBackGift($id)
     {
-        $gift=Inventario::findOrFail($id);
+        $gift = Inventario::findOrFail($id);
         $gift->disponibilidad = 1;
         $gift->save();
         $success = array("message" => "Producto actualizado satisfactoriamente", "alert" => "success");
@@ -76,33 +76,49 @@ class InventarioController extends Controller
      */
     public function store(Request $request)
     {
+
+        //         $table->id('codigo');
+        // $table->id('nro');
+
+        // $table->string("producto");
+        // $table->bigInteger("precio");
+        // $table->bigInteger("precio_sin_iva");
+        // $table->bigInteger("costo");
+        // $table->bigInteger("costo_sin_iva");
+        // $table->bigInteger("columna2");
+
+        // $table->string("stock");
+        // $table->string("stock_min");
+        // $table->string("usd_ref")->nullable();
         $request->validate([
+            'codigo' => 'required|string| unique:inventarios,codigo',
             'producto' => 'required|string',
-            'marca' => 'required|string',
             'precio' => 'required|numeric',
-            'talla' => 'required|string',
-            'tipo' => 'required|string',
-            'color' => 'required|string',
-            'almacen' =>  'required|string',
-             'disponibilidad' => 'nullable|string',
+            'precio_sin_iva' => 'required|numeric',
+            'costo' => 'required|numeric',
+            'costo_sin_iva' => 'required|numeric',
+            'columna2' => 'required|numeric',
+            'stock' => 'required|numeric',
+            'stock_min' => 'required|numeric',
+            'usd_ref' => 'nullable|string',
         ]);
 
-            $producto = new Inventario;
-            $producto->producto = $request->input('producto');
-            $producto->marca = $request->input('marca');
-            $producto->talla = $request->input('talla');
-            $producto->precio = $request->input('precio');
-            $producto->tipo = $request->input('tipo');
-            $producto->almacen = $request->input('almacen');
-            $producto->color = $request->input('color');
-            $producto->disponibilidad = $request->has('disponibilidad') && $request->input('disponibilidad') === 'on' ? 0 : 1;
-            $producto->alquiler = $request->input('disponibilidad') === 'on' ? Carbon::now() :  null; // Establecerá la fecha y hora actual
+        $producto = new Inventario;
+        $producto->producto = $request->input('producto');
+        $producto->codigo = $request->input('codigo');
+        $producto->precio = $request->input('precio');
+        $producto->precio_sin_iva = $request->input('precio_sin_iva');
+        $producto->costo = $request->input('costo');
+        $producto->costo_sin_iva = $request->input('costo_sin_iva');
+        $producto->columna2 = $request->input('columna2');
+        $producto->stock = $request->input('stock');
+        $producto->stock_min = $request->input('stock_min');
+        $producto->usd_ref = $request->input('usd_ref');
 
 
-      
-            $producto->save();
-            $success = array("message" => "Producto creado Satisfactoriamente", "alert" => "success");
-            return redirect()->route('inventario.index')->with('success',$success);
+        $producto->save();
+        $success = array("message" => "Producto creado Satisfactoriamente", "alert" => "success");
+        return redirect()->route('inventario.index')->with('success', $success);
     }
 
     /**
@@ -120,8 +136,6 @@ class InventarioController extends Controller
     {
         $product = Inventario::find($id);
         return view('inventario.edit', compact('product'));
-
-        //
     }
 
     /**
@@ -131,92 +145,95 @@ class InventarioController extends Controller
     {
         $request->validate([
             'producto' => 'required|string',
-            'marca' => 'required|string',
+            'codigo' => 'required|string',
             'precio' => 'required|numeric',
-            'talla' => 'required|string',
-            'tipo' => 'required|string',
-            'color' => 'required|string',
-            'almacen' => 'required|string',
+            'precio_sin_iva' => 'required|numeric',
+            'costo' => 'required|numeric',
+            'costo_sin_iva' => 'required|numeric',
+            'columna2' => 'required|numeric',
+            'stock' => 'required|numeric',
+            'stock_min' => 'required|numeric',
+            'usd_ref' => 'nullable|string',
 
         ]);
-    
+
         $producto = Inventario::findOrFail($id);
-    
+
         $producto->producto = $request->input('producto');
-        $producto->marca = $request->input('marca');
-        $producto->talla = $request->input('talla');
+        $producto->codigo = $request->input('codigo');
         $producto->precio = $request->input('precio');
-        $producto->almacen = $request->input('almacen');
-        $producto->tipo = $request->input('tipo');
-        $producto->color = $request->input('color');
-    
+        $producto->precio_sin_iva = $request->input('precio_sin_iva');
+        $producto->costo = $request->input('costo');
+        $producto->costo_sin_iva = $request->input('costo_sin_iva');
+        $producto->columna2 = $request->input('columna2');
+        $producto->stock = $request->input('stock');
+        $producto->stock_min = $request->input('stock_min');
+        $producto->usd_ref = $request->input('usd_ref');
+
         $producto->update();
-   
-    
+
         $success = array("message" => "Producto actualizado satisfactoriamente", "alert" => "success");
         return redirect()->route('inventario.index')->with('success', $success);
     }
-    
+
     /**
      * Remove the specified resource from storage.
      */
     public function destroy($id)
     {
         Inventario::find($id)->delete();
-        return redirect()->route('inventario.index')->with('success','Producto Eliminado.');
+        return redirect()->route('inventario.index')->with('success', 'Producto Eliminado.');
     }
     public function Exportacion(Request $request)
     {
         $searchTerm = $request->input('searchTerm');
         $query = Inventario::query();
-    
+
         if ($searchTerm) {
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('codigo', 'like', '%' . $searchTerm . '%')
                     ->orWhere('producto', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('marca', 'like', '%' . $searchTerm . '%')
                     ->orWhere('precio', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('talla', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('tipo', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('color', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('almacen', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('disponibilidad', 'like', '%' . $searchTerm . '%');
+                    ->orWhere('precio_sin_iva', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('costo', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('costo_sin_iva', 'like', '%' . $searchTerm . '%');
             });
         }
-    
+
         $data = $query->get();
-    
+
         // Devuelve una instancia de la clase InventarioExport con los datos filtrados
         return Excel::download(new InventarioExport($data), 'Productos.csv', \Maatwebsite\Excel\Excel::CSV);
     }
-    
-    public function ExportacionAlquilado(){
+
+    public function ExportacionAlquilado()
+    {
         return Excel::download(new AlquiladoExport(), 'Productos.csv', \Maatwebsite\Excel\Excel::CSV);
     }
-    public function ExportacionDisponible(){
+    public function ExportacionDisponible()
+    {
         return Excel::download(new disponibleExport(), 'Productos.csv', \Maatwebsite\Excel\Excel::CSV);
     }
-    public function Importacion(Request $request) 
+    public function Importacion(Request $request)
     {
         $archivo = $request->file('excel');
 
+        if ($archivo) {
 
-        if($archivo){
+            try {
+                Excel::import(new InventarioImport, $archivo);
+            } catch (\Throwable $th) {
+                $success = array("message" => "Productos no Importados" . $th, "alert" => "danger");
+                return redirect()->back()->with('success', $success);
+            }
 
-                try {
-                    Excel::import(new InventarioImport, $archivo);
-                } catch (\Throwable $th) {
-                    $success = array("message" => "Productos no Importados" . $th, "alert" => "danger");
-                    return redirect()->back()->with('success', $success);              
-                }
-
-                $success = array("message" => "Productos importados satisfactoriamente", "alert" => "success");
+            $success = array("message" => "Productos importados satisfactoriamente", "alert" => "success");
             return redirect()->back()->with('success', $success);
-        }else {
+        } else {
             return back()->with('error', 'Error al subir el archivo');
 
         }
 
     }
-    
+
 }

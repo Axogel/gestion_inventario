@@ -3,9 +3,7 @@
 					<div class="app-sidebar__logo">
 						<a class="header-brand" href="{{ route('index') }}">
 							<img src="{{URL::asset('assets/images/brand/logo.png')}}" style="height: 3.8rem"  class="header-brand-img desktop-lgo" alt="Covido logo">
-							<img src="{{URL::asset('assets/images/brand/logo1.png')}}" class="header-brand-img dark-logo" alt="Covido logo">
-							<img src="{{URL::asset('assets/images/brand/favicon.png')}}" class="header-brand-img mobile-logo" alt="Covido logo">
-							<img src="{{URL::asset('assets/images/brand/favicon1.png')}}" class="header-brand-img darkmobile-logo" alt="Covido logo">
+
 						</a>
 					</div>
 				</div>
@@ -42,14 +40,10 @@
                             </a>
 							<ul class="slide-menu">
 								<li><a class="slide-item" href="{{ route('inventario.index') }}"><span>Inventario</span></a></li>
-								<li><a class="slide-item" href="{{ route('alquilado.index') }}"><span>Alquilado</span></a></li>
-								<li><a class="slide-item" href="{{ route('disponible.index') }}"><span>Disponible</span></a></li>
-								<li><a class="slide-item" href="{{ route('inventario.gift') }}"><span>Regalos o Prestamos</span></a></li>
 
 								<li><a class="slide-item" href="{{ route('cliente.index') }}"><span>Clientes</span></a></li>
 
 								<li><a class="slide-item" href="{{ route('orden.index') }}"><span>Ordenes</span></a></li>
-								<li><a class="slide-item" href="{{ route('factura.index') }}"><span>Facturas</span></a></li>
 
 
 
@@ -62,8 +56,7 @@
                                 <span class="side-menu__label">Caja</span><i class="side-menu__icon angle fa fa-angle-right"></i>
                             </a>
 							<ul class="slide-menu">
-								<li><a class="slide-item" href="{{route('gastos.index')}}"><span>Gastos</span></a></li>
-								<li><a class="slide-item" href="{{ route('libros-por-fecha', ['fecha' => now()->format('Y-m-d')]) }}"><span>Caja de Hoy</span></a></li>
+								<li><a class="slide-item" href="{{ route('orden.today') }}"><span>Caja de Hoy</span></a></li>
 
 							</ul>
 						</li>
@@ -86,12 +79,10 @@
                                 <span class="side-menu__label">Administracion</span><i class="side-menu__icon angle fa fa-angle-right"></i>
                             </a>
 							<ul class="slide-menu">
+								<li><a class="slide-item" href="{{route('metricas')}}"><span>Divisas</span></a></li>
+
 								<li><a class="slide-item" href="{{route('divisas.create')}}"><span>Divisas</span></a></li>
-								<li><a class="slide-item" href="{{route('libroMayor.index')}}"><span>Libro Mayor</span></a></li>
-
-								<li><a class="slide-item" href="{{route('libroDiario.index')}}"><span>Libro Diario</span></a></li>
-
-
+	
 							</ul>
 						</li>
 

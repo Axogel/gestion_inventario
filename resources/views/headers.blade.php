@@ -31,9 +31,6 @@
 												<div class="d-flex">
 													<a class="header-brand" href="{{ url('/' . $page='index') }}">
 														<img src="{{URL::asset('assets/images/brand/logo.png')}}" class="header-brand-img desktop-lgo" alt="Dashtic logo">
-														<img src="{{URL::asset('assets/images/brand/logo1.png')}}" class="header-brand-img dark-logo" alt="Dashtic logo">
-														<img src="{{URL::asset('assets/images/brand/favicon.png')}}" class="header-brand-img mobile-logo" alt="Dashtic logo">
-														<img src="{{URL::asset('assets/images/brand/favicon1.png')}}" class="header-brand-img darkmobile-logo" alt="Dashtic logo">
 													</a>
 													<div class="d-flex order-lg-2 ml-auto">
 														<div class="dropdown d-none d-md-flex mt-1" >

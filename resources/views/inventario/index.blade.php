@@ -1,265 +1,171 @@
 @extends('layouts.master')
 @section('css')
-<!-- Data table css -->
 <link href="{{URL::asset('assets/plugins/datatable/css/dataTables.bootstrap4.min.css')}}" rel="stylesheet" />
-<link href="{{URL::asset('assets/plugins/datatable/css/buttons.bootstrap4.min.css')}}"  rel="stylesheet">
 <link href="{{URL::asset('assets/plugins/datatable/responsive.bootstrap4.min.css')}}" rel="stylesheet" />
-<!-- Slect2 css -->
 <link href="{{URL::asset('assets/plugins/select2/select2.min.css')}}" rel="stylesheet" />
+<style>
+    .btn-responsive { width: 100%; max-width: 200px; }
+    .table-status { font-weight: bold; text-transform: uppercase; font-size: 0.75rem; }
+</style>
 @endsection
+
 @section('page-header')
-						<!--Page header-->
-						<div class="page-header">
-							<div class="page-leftheader">
-								<h4 class="page-title">Inventario</h4>
-							</div>
-						</div>
-						<!--End Page header-->
+<div class="page-header">
+    <div class="page-leftheader">
+        <h4 class="page-title">Inventario de Papelería</h4>
+    </div>
+</div>
 @endsection
+
 @section('content')
-                        <!--Row-->
-                        @if(Session::has('success'))
-                            <div class="alert alert-{{ session('success.alert') }} alert-dismissible fade show" role="alert">
-                                {{ session('success.message') }}
+@if(Session::has('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success.message') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
 
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        @endif
-
-						<div class="row row-deck">
-							<div class="col-xl-12 col-lg-12 col-md-12">
-								<div class="card">
-									<div class="card-header">
-										<h3 class="card-title"></h3>
-                                        <div class="form-group">
-                                                <label for="fecha">Buscar:</label>
-                                                <input type="text" id="search" name="search" class="form-control" placeholder="buscador">
-                                            </div>
-                                            <div class="card-options d-flex flex-wrap  flex-column flex-sm-row">
-                                                <div class="btn-group ml-5 mb-2">
-                                                <form id="searchForm" action="{{ route('exportInventario') }}" method="POST">
-                                                    @csrf
-                                                    <input type="hidden" name="searchTerm" id="searchTerm">
-                                                    <input  class="btn btn-primary btn-responsive" type="submit" value="Descargar Excel">
-                                                </form>
-                                                </div>
-                                                <div class="btn-group ml-5 mb-2">
-                                                    <a class="btn btn-primary  btn-responsive" data-target="#modaldemo1" data-toggle="modal" href="">
-                                                        <i class="fa fa-plus mr-2"></i>Añadir Excel
-                                                    </a>
-                                                </div>
-                                                <div class="btn-group ml-5 mb-2">
-                                                    <a class="btn btn-primary  btn-responsive" href="{{ route('inventario.create') }}">
-                                                        <i class="fa fa-plus mr-2"></i>Añadir un Producto
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            
-									</div>
-									<div class="card-body">
-										<div class="table-responsive">
-                                            <table id="table" class=" table table-bordered text-nowrap key-buttons" style="border-color:#eff0f6;">
-                                                <thead style="border-color:#eff0f6;">
-                                                    <th class="border-bottom-0">Codigo</th>
-                                                    <th class="border-bottom-0">Producto</th>
-                                                    <th class="border-bottom-0">marca</th>
-                                                    <th class="border-bottom-0">talla</th>
-                                                    <th class="border-bottom-0">tipo</th>
-                                                    <th class="border-bottom-0">precio</th>
-                                                    <th class="border-bottom-0">almacen</th>
-
-                                                    <th class="border-bottom-0">color</th>
-                                                    <th class="border-bottom-0">estado</th>
-                                                    <th class="border-bottom-0">alquiler</th>
-                                                    <th style="border-color:#eff0f6;"></th>
-                                                    <th style="border-color:#eff0f6;"></th>
-                                                    <th style="border-color:#eff0f6;"></th>
-
-                                                    @if(Auth::user()->isSuper())
-
-                                                    <th style="border-color:#eff0f6;"></th>
-                                                    <th style="border-color:#eff0f6;"></th>
-                                                    @endif
-                                                </thead>
-                                                <tbody id="contentTable">
-                                                    @if($inventario->isNotEmpty())
-                                                        @foreach($inventario as $producto)
-                                                            <tr class="bold producto-row">
-                                                                <td>{{$producto->codigo}}</td>
-                                                                <td>{{$producto->producto}}</td>
-                                                                <td>{{$producto->marca}}</td>
-                                                                <td>{{$producto->talla}}</td>
-                                                                <td>{{$producto->tipo}}</td>
-                                                                <td>{{$producto->precio}}</td>
-                                                                <td>{{$producto->almacen}}</td>
-
-                                                                <td>{{$producto->color}}</td>
-                                                                <td>
-                                                                    @if($producto->disponibilidad == 1)
-                                                                        Disponible
-                                                                    @elseif($producto->disponibilidad == 2)
-                                                                        Vendido
-                                                                    @elseif($producto->disponibilidad == 3)
-                                                                        Prestado o regalado
-                                                                    @else
-                                                                        Alquilado
-                                                                    @endif
-                                                                </td>
-
-
-                                                                <td @if($producto->alquiler && strtotime($producto->alquiler) < strtotime(now()->subDays(3))) class="bg-danger text-white" @endif>
-                                                                    {{$producto->alquiler}}
-                                                                </td>
-
-
-                                                                <td>
-                                                                @if($producto->disponibilidad ==1)
-                                                                    <a class="btn btn-success btn-xs" href="{{ route('orden.crear', ['id' => $producto->codigo]) }}" ><span class=" fa fa-money"></span> </a>
-                                                                    @else 
-                                                                    <a class="btn btn-dark btn-xs" href="#"  style="cursor: not-allowed"><span class=" fa fa-money"></span> </a>
-                                                                    @endif
-                                                                </td>
-                                                                <td>
-                                                                <form id="giftForm" action="{{ route('inventario.sendGift', ['id' => $producto->codigo]) }}" method="post">
-                                                                    {{ csrf_field() }}
-                                                                    {{ method_field('POST') }}
-                                                                    <button class="btn btn-info btn-xs" onclick="gift()" type="button"><span class=" fa fa-gift"></span></button>
-                                                                </form>
-                                                                </td>
-                                                                @if(Auth::user()->isSuper())
-
-
-                                                                <td><a class="btn btn-primary btn-xs" href="{{ route('inventario.edit', ['id' => $producto->codigo]) }}" ><span class="fa fa-pencil"></span></a></td>
-                                                                <td>
-                                                                <form id="deleteForm" action="{{ route('inventario.destroy', ['id' => $producto->codigo]) }}" method="delete">
-                                                                    {{ csrf_field() }}
-                                                                    {{ method_field('DELETE') }}
-                                                                    <button class="btn btn-danger btn-xs" onclick="confirmDelete()" type="button"><span class="fa fa-trash"></span></button>
-                                                                </form>
-                                                                </td>
-                                                                @endif
-                                                            </tr>
-                                                        @endforeach
-                                                    @else
-                                                        <tr>
-                                                            <td colspan="8">No one there!</td>
-                                                        </tr>
-                                                    @endif
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-								</div>
-							</div>
-						</div>
-						<!--End row-->
-					</div>
-				</div><!-- end app-content-->
-            </div>
-            <div class="modal" id="modaldemo1">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content modal-content-demo">
-                        <div class="modal-header">
-                            <h6 class="modal-title">Importar Archivo</h6><button aria-label="Close" class="close" data-dismiss="modal" type="button"><span aria-hidden="true">&times;</span></button>
-                        </div>
-                        <div class="modal-body">
-                            <form method="POST" action="{{ route('inventario.import') }}" role="form" enctype="multipart/form-data">
-                                {{ csrf_field() }}
-                                <div class="row">
-                                    <div class="col-xs-6">
-                                        <div class="custom-file">
-                                            <input type="file" id="excel" name="excel" class="custom-file-input p-2" data-height="250" accept=".xlsx, .xls, .csv" onchange='openFile(event)'/>
-                                            <label class="custom-file-label">Elegir Archivo Excel, Csv</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-xs-12 p-3">
-                                    <button type="submit" class="btn btn-lg btn-primary">Importar</button>
-                                </div>
-                            </form>
-    
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-light" data-dismiss="modal" type="button">Cerrar</button>
-                        </div>
-                    </div>
+<div class="row">
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <div class="form-group mb-0">
+                    <label class="form-label">Buscar Producto:</label>
+                    <input type="text" id="search" class="form-control" placeholder="Nombre o código...">
+                </div>
+                
+                <div class="d-flex flex-wrap" style="gap: 10px;">
+                    <form action="{{ route('exportInventario') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="searchTerm" id="searchTerm">
+                        <button class="btn btn-outline-primary" type="submit">
+                            <i class="fa fa-file-excel-o"></i> Exportar
+                        </button>
+                    </form>
+                    
+                    <button class="btn btn-secondary" data-target="#modaldemo1" data-toggle="modal">
+                        <i class="fa fa-upload"></i> Importar Excel
+                    </button>
+                    
+                    <a class="btn btn-primary" href="{{ route('inventario.create') }}">
+                        <i class="fa fa-plus"></i> Nuevo Producto
+                    </a>
                 </div>
             </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="table" class="table table-bordered text-nowrap key-buttons">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Código</th>
+                                <th>Artículo</th>
+                                <th>Precio (BS)</th>
+                                <th>Costo</th>
+                                <th>Ref. USD</th>
+                                <th>Stock</th>
+                                <th>Mayorista</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contentTable">
+                            @forelse($inventario as $producto)
+                            <tr class="producto-row {{ $producto->stock <= $producto->stock_min ? 'bg-warning-transparent' : '' }}">
+                            <td>{{ $producto->id }}</td>    
+                            <td>{{ $producto->codigo }}</td>
+                                <td>
+                                    <strong>{{ $producto->producto }}</strong>
+                                    @if($producto->stock <= $producto->stock_min)
+                                        <span class="badge badge-danger ml-2">Stock Bajo</span>
+                                    @endif
+                                </td>
+                                <td>{{ number_format($producto->precio, 2) }}</td>
+                                <td>{{ number_format($producto->costo, 2) }}</td>
+                                <td class="text-success">${{ number_format($producto->usd_ref, 2) }}</td>
+                                <td>{{ $producto->stock }}</td>
+                                <td>{{ number_format($producto->columna2, 2) }}</td>
+                                <td>
+                                    <div class="btn-list">
+
+                                        @if(Auth::user()->isSuper())
+                                            {{-- Editar --}}
+                                            <a href="{{ route('inventario.edit', ['id' => $producto->id]) }}" class="btn btn-sm btn-primary">
+                                                <i class="fa fa-pencil"></i>
+                                            </a>
+                                            
+                                            {{-- Eliminar con formulario único --}}
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteItem('{{ $producto->id }}')">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+
+                                            <form id="delete-form-{{ $producto->id }}" action="{{ route('inventario.destroy', $producto->id) }}" method="POST" style="display:none;">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="8" class="text-center">No hay productos registrados</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Importar --}}
+<div class="modal fade" id="modaldemo1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('inventario.import') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header">
+                    <h6 class="modal-title">Cargar Inventario (Excel/CSV)</h6>
+                    <button aria-label="Close" class="close" data-dismiss="modal" type="button"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="custom-file">
+                        <input type="file" name="excel" class="custom-file-input" accept=".xlsx, .xls, .csv" required>
+                        <label class="custom-file-label">Seleccionar archivo...</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Procesar Archivo</button>
+                    <button class="btn btn-light" data-dismiss="modal" type="button">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
+
 @section('js')
-<!-- Data tables -->
-<script src="{{URL::asset('assets/plugins/datatable/js/jquery.dataTables.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/dataTables.bootstrap4.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/dataTables.buttons.min.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/buttons.bootstrap4.min.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/jszip.min.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/pdfmake.min.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/vfs_fonts.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/buttons.html5.min.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/buttons.print.min.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/js/buttons.colVis.min.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/dataTables.responsive.min.js')}}"></script>
-<script src="{{URL::asset('assets/plugins/datatable/responsive.bootstrap4.min.js')}}"></script>
-<script src="{{URL::asset('assets/js/datatables.js')}}"></script>
-<!-- Select2 js -->
-<script src="{{URL::asset('assets/plugins/select2/select2.full.min.js')}}"></script>
 <script>
-    function confirmDelete() {
-        if (confirm("¿Está seguro de que desea eliminar este elemento?")) {
-            document.getElementById('deleteForm').submit();
-        }
-    }
-   async function gift() {
-    if (confirm("¿Está seguro de que desea regalar o prestar este elemento?")) {  
-        document.getElementById('giftForm').submit();
-    }
-}
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('search');
-        const productoRows = document.querySelectorAll('.producto-row');
+    // Buscador en tiempo real mejorado
+    document.getElementById('search').addEventListener('input', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('.producto-row');
+        document.getElementById("searchTerm").value = filter;
 
-        searchInput.addEventListener('input', function () {
-            const searchTerm = searchInput.value.toLowerCase();
-
-            document.getElementById("searchTerm").value =  searchTerm;
-
-            productoRows.forEach(function (row) {
-                const textoFila = row.innerText.toLowerCase();
-
-                if (textoFila.includes(searchTerm)) {
-                    row.style.display = ''; 
-                } else {
-                    row.style.display = 'none'; 
-                }
-            });
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
         });
     });
-</script>
 
-
-<script type="text/javascript">
-    var openFile = function(event) {
-        var input = event.target;
-
-        var reader = new FileReader();
-        reader.onload = function(){
-            var dataURL = reader.result;
-            console.log(dataURL);
-            xmlDoc = $.parseXML(dataURL),
-            $xml = $(xmlDoc),
-            $('#xmltext').val(dataURL);
-        };
-        reader.readAsText(input.files[0]);
-    };
-</script>
-
-<style>
-    .btn-responsive {
-        width: 200px;
+    // Función de borrado segura
+    function deleteItem(id) {
+        if (confirm("¿Seguro que deseas eliminar este producto del inventario?")) {
+            document.getElementById('delete-form-' + id).submit();
+        }
     }
-</style>
+</script>
 @endsection

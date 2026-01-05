@@ -4,53 +4,75 @@ namespace App\Imports;
 
 use App\Models\Inventario;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
 
-
-class InventarioImport implements ToModel, WithHeadingRow, WithChunkReading, WithBatchInserts
+class InventarioImport implements ToModel, WithHeadingRow, WithChunkReading, SkipsOnFailure
 {
-    /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+    use SkipsFailures;
+
     public function model(array $row)
     {
- 
-        if($row['disponibilidad'] === 0 ){
-            $alquilado = $row['alquiler'];
+        // Evitar registros sin código o producto
+        if (empty($row['codigo']) || empty($row['articulo'])) {
+            return null;
         }
-        else{
-            $alquilado = null;
-        }
-        if($row['disponibilidad'] == "disponible"){
-            $disponibilidad = 1;
-        }elseif($row['disponibilidad'] == "alquilado"){
-            $disponibilidad = 0;
 
-        }else {
-            $disponibilidad = $row['disponibilidad'];
+        $codigo = trim($row['codigo']);
+
+        $data = [
+            'producto' => trim($row['articulo']),
+            'precio' => $this->parseMoney($row['precio'] ?? 0),
+            'precio_sin_iva' => $this->parseMoney($row['precio_sin_iva'] ?? 0),
+            'costo' => $this->parseMoney($row['costo'] ?? 0),
+            'costo_sin_iva' => $this->parseMoney($row['costo_sin_iva'] ?? 0),
+            'columna2' => $this->parseMoney($row['columna2'] ?? 0),
+            'stock' => (int) ($row['stock'] ?? 0),
+            'stock_min' => (int) ($row['stock_min'] ?? 0),
+            'usd_ref' => $row['usd_ref'] ?? null,
+        ];
+
+        // Buscar producto por código
+        $productoExistente = Inventario::where('codigo', $codigo)->first();
+
+        if ($productoExistente) {
+            // Actualizar si existe
+            $productoExistente->update($data);
+            return $productoExistente;
+        } else {
+            // Crear nuevo registro
+            $data['codigo'] = $codigo;
+            return Inventario::create($data);
         }
-        $producto = new Inventario;
-        $producto->producto = $row['producto'];
-        $producto->precio = $row['precio'];
-        $producto->marca = $row['marca'];
-        $producto->tipo = $row['tipo'];
-        $producto->talla = $row['talla'];
-        $producto->color = $row['color'];
-        $producto->almacen = $row['almacen'];
-        $producto->disponibilidad = $disponibilidad;
-        $producto->alquiler = $alquilado;
-        $producto->save();
     }
+    private function parseMoney($value): int
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        // Convertir a string
+        $value = (string) $value;
+
+        // Eliminar todo lo que NO sea número, punto o coma
+        $value = preg_replace('/[^0-9.,]/', '', $value);
+
+        // Quitar separador de miles (.)
+        $value = str_replace('.', '', $value);
+
+        // Convertir coma decimal a punto
+        $value = str_replace(',', '.', $value);
+        return (int) round((float) $value);
+    }
+
+
+
     public function chunkSize(): int
     {
         return 1000;
     }
-    public function batchSize(): int
-    {
-        return 1000;
-    }
+
+    // Eliminamos batchSize porque no lo necesitamos
 }

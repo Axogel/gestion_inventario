@@ -4,24 +4,25 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('inventarios', function (Blueprint $table) {
-            $table->id('codigo');
+            $table->id();
+            $table->string('codigo')->unique()->index();
             $table->string("producto");
-            $table->string("marca");
             $table->bigInteger("precio");
-            $table->string("talla");
-            $table->string("tipo");
-            $table->string("color");
-            $table->string("almacen");
-            $table->boolean("disponibilidad")->default(1);
-            $table->dateTime("alquiler")->nullable();
+            $table->bigInteger("precio_sin_iva");
+            $table->bigInteger("costo");
+            $table->bigInteger("costo_sin_iva");
+            $table->bigInteger("columna2");
+
+            $table->string("stock");
+            $table->string("stock_min");
+            $table->string("usd_ref")->nullable();
             $table->timestamps();
         });
     }

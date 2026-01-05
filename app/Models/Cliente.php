@@ -16,7 +16,8 @@ class Cliente extends Model
         'fecha_nacimiento',
         'telefono',
         'cedula',
-    
+        'correo',
+
     ];
     use HasFactory;
 }

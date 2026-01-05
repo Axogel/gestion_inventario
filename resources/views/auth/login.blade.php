@@ -80,7 +80,7 @@
         </div>
         <style>
             .page{
-                background-image: url('{{ asset('assets/images/brand/fondoCY.jpg') }}') !important;
+                background: #fff !important;
                 background-size: cover;
             }
         </style>
