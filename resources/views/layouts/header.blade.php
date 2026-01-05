@@ -3,7 +3,7 @@
 							<div class="container-fluid">
 								<div class="d-flex">
 									<a class="header-brand" href="{{ url('/' . $page='index') }}">
-										<img src="{{URL::asset('assets/images/brand/logo.png')}}" style="height: 3.8rem" class="header-brand-img desktop-lgo" alt="Dashtic logo">
+										<img src="{{URL::asset('assets/images/brand/logo.png')}}" style="height: 5.8rem" class="header-brand-img desktop-lgo" alt="Dashtic logo">
 									</a>
 									<div class="dropdown side-nav">
 										<div class="app-sidebar__toggle" data-toggle="sidebar">

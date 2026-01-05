@@ -2,30 +2,13 @@
 <div class="app-sidebar app-sidebar2">
 					<div class="app-sidebar__logo">
 						<a class="header-brand" href="{{ route('index') }}">
-							<img src="{{URL::asset('assets/images/brand/logo.png')}}" style="height: 3.8rem"  class="header-brand-img desktop-lgo" alt="Covido logo">
+							<img src="{{URL::asset('assets/images/brand/logo.png')}}" style="height: 5.8rem"  class="header-brand-img desktop-lgo" alt="Covido logo">
 
 						</a>
 					</div>
 				</div>
 				<aside class="app-sidebar app-sidebar3">
-					<div class="app-sidebar__user">
-						<div class="dropdown user-pro-body text-center">
-							<div class="user-pic">
-								@if (Auth::user())
-								<img src="../img/profile/{{ Auth::user()->profile_photo }}" alt="user-img" class="avatar-xl rounded-circle mb-1">
-
-								@endif
-							</div>
-							<div class="user-info">
-								@if (Auth::user())
-								<h5 class=" mb-1 font-weight-bold">{{ Auth::user()->name }} 
-								</h5>
-								@endif
-							
-								{{-- <span class="text-muted app-sidebar__user-name text-sm">App de Inventario</span> --}}
-							</div>
-						</div>
-					</div>
+			
                     <ul class="side-menu">
 						<li class="slide">
                             <a class="side-menu__item" href="{{ route('dashboardgrap') }}">

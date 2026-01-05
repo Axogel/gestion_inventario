@@ -1296,13 +1296,9 @@
         padding-left: 1px;
     }
 
-    .sidenav-toggled .app-sidebar__logo {
-        padding: 13px 16px;
-    }
 }
 
 .app-sidebar__logo {
-    padding: 13px 15px;
     border-bottom: 1px solid #606ecc;
     height: 75px;
     text-align: center;
