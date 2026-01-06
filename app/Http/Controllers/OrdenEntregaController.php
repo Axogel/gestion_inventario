@@ -70,7 +70,7 @@ class OrdenEntregaController extends Controller
 
         // Valor total del inventario (a costo)
         $valorInventario = DB::table('inventarios')
-            ->select(DB::raw('SUM(stock * costo) as total'))
+            ->select(DB::raw('SUM(stock * precio) as total'))
             ->value('total');
 
         return [
@@ -90,11 +90,12 @@ class OrdenEntregaController extends Controller
     {
         $numeroId = $id;
         $clientes = Cliente::all();
+        $divisas = Divisa::all();
         $products = Inventario::where('stock', '>', 0)
             ->select('id', 'codigo', 'producto', 'precio')
             ->get();
 
-        return view("orden.create", compact('numeroId', 'products', 'clientes'));
+        return view("orden.create", compact('numeroId', 'products', 'clientes', 'divisas'));
     }
 
 

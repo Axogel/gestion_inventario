@@ -25,13 +25,8 @@ class InventarioImport implements ToModel, WithHeadingRow, WithChunkReading, Ski
         $data = [
             'producto' => trim($row['articulo']),
             'precio' => $this->parseMoney($row['precio'] ?? 0),
-            'precio_sin_iva' => $this->parseMoney($row['precio_sin_iva'] ?? 0),
-            'costo' => $this->parseMoney($row['costo'] ?? 0),
-            'costo_sin_iva' => $this->parseMoney($row['costo_sin_iva'] ?? 0),
-            'columna2' => $this->parseMoney($row['columna2'] ?? 0),
             'stock' => (int) ($row['stock'] ?? 0),
             'stock_min' => (int) ($row['stock_min'] ?? 0),
-            'usd_ref' => $row['usd_ref'] ?? null,
         ];
 
         // Buscar producto por código

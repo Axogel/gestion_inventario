@@ -94,26 +94,16 @@ class InventarioController extends Controller
             'codigo' => 'required|string| unique:inventarios,codigo',
             'producto' => 'required|string',
             'precio' => 'required|numeric',
-            'precio_sin_iva' => 'required|numeric',
-            'costo' => 'required|numeric',
-            'costo_sin_iva' => 'required|numeric',
-            'columna2' => 'required|numeric',
             'stock' => 'required|numeric',
             'stock_min' => 'required|numeric',
-            'usd_ref' => 'nullable|string',
         ]);
 
         $producto = new Inventario;
         $producto->producto = $request->input('producto');
         $producto->codigo = $request->input('codigo');
         $producto->precio = $request->input('precio');
-        $producto->precio_sin_iva = $request->input('precio_sin_iva');
-        $producto->costo = $request->input('costo');
-        $producto->costo_sin_iva = $request->input('costo_sin_iva');
-        $producto->columna2 = $request->input('columna2');
         $producto->stock = $request->input('stock');
         $producto->stock_min = $request->input('stock_min');
-        $producto->usd_ref = $request->input('usd_ref');
 
 
         $producto->save();
@@ -147,13 +137,8 @@ class InventarioController extends Controller
             'producto' => 'required|string',
             'codigo' => 'required|string',
             'precio' => 'required|numeric',
-            'precio_sin_iva' => 'required|numeric',
-            'costo' => 'required|numeric',
-            'costo_sin_iva' => 'required|numeric',
-            'columna2' => 'required|numeric',
             'stock' => 'required|numeric',
             'stock_min' => 'required|numeric',
-            'usd_ref' => 'nullable|string',
 
         ]);
 
@@ -162,14 +147,8 @@ class InventarioController extends Controller
         $producto->producto = $request->input('producto');
         $producto->codigo = $request->input('codigo');
         $producto->precio = $request->input('precio');
-        $producto->precio_sin_iva = $request->input('precio_sin_iva');
-        $producto->costo = $request->input('costo');
-        $producto->costo_sin_iva = $request->input('costo_sin_iva');
-        $producto->columna2 = $request->input('columna2');
         $producto->stock = $request->input('stock');
         $producto->stock_min = $request->input('stock_min');
-        $producto->usd_ref = $request->input('usd_ref');
-
         $producto->update();
 
         $success = array("message" => "Producto actualizado satisfactoriamente", "alert" => "success");
@@ -193,10 +172,7 @@ class InventarioController extends Controller
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('codigo', 'like', '%' . $searchTerm . '%')
                     ->orWhere('producto', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('precio', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('precio_sin_iva', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('costo', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('costo_sin_iva', 'like', '%' . $searchTerm . '%');
+                    ->orWhere('precio', 'like', '%' . $searchTerm . '%');
             });
         }
 

@@ -63,11 +63,9 @@
                                 <th>ID</th>
                                 <th>Código</th>
                                 <th>Artículo</th>
-                                <th>Precio (BS)</th>
-                                <th>Costo</th>
-                                <th>Ref. USD</th>
+                                <th>Precio </th>
+
                                 <th>Stock</th>
-                                <th>Mayorista</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -83,10 +81,7 @@
                                     @endif
                                 </td>
                                 <td>{{ number_format($producto->precio, 2) }}</td>
-                                <td>{{ number_format($producto->costo, 2) }}</td>
-                                <td class="text-success">${{ number_format($producto->usd_ref, 2) }}</td>
                                 <td>{{ $producto->stock }}</td>
-                                <td>{{ number_format($producto->columna2, 2) }}</td>
                                 <td>
                                     <div class="btn-list">
 

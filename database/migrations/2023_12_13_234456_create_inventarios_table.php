@@ -15,14 +15,8 @@ return new class extends Migration {
             $table->string('codigo')->unique()->index();
             $table->string("producto");
             $table->bigInteger("precio");
-            $table->bigInteger("precio_sin_iva");
-            $table->bigInteger("costo");
-            $table->bigInteger("costo_sin_iva");
-            $table->bigInteger("columna2");
-
             $table->string("stock");
             $table->string("stock_min");
-            $table->string("usd_ref")->nullable();
             $table->timestamps();
         });
     }

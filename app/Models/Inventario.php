@@ -14,13 +14,8 @@ class Inventario extends Model
         'codigo',
         'nombre',
         'precio',
-        'precio_sin_iva',
-        'costo',
-        'costo_sin_iva',
-        'columna2',
         'stock',
         'stock_min',
-        'usd_ref',
     ];
     use HasFactory;
 

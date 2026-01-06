@@ -75,44 +75,18 @@
 
                                                 {{-- PRECIOS Y COSTOS --}}
                                                 <div class="col-md-6">
-                                                    <div class="section-title">Precios y Costos (Venta en BS)</div>
+                                                    <div class="section-title">Precios (Venta en COP)</div>
                                                     
                                                     <div class="row">
                                            
                                                         <div class="col-6">
-                                                            <label class="form-label">Precio Venta (Con IVA):</label>
+                                                            <label class="form-label">Precio Venta:</label>
                                                             <input type="number" step="0.01" name="precio" class="form-control" placeholder="0.00" value="{{ old('precio') }}">
                                                         </div>
-                                                                                                                <div class="col-6">
-                                                            <label class="form-label">Precio Venta (Sin IVA):</label>
-                                                            <input type="number" step="0.01" name="precio_sin_iva" class="form-control" placeholder="0.00" value="{{ old('precio_sin_iva') }}">
-                                                        </div>
+                            
                                                     </div>
-                                                    <div class="row">
-                                                        <div class="col-6">
-                                                            <label class="form-label">Costo (Con IVA):</label>
-                                                            <input type="number" step="0.01" name="costo" class="form-control" placeholder="0.00" value="{{ old('costo') }}">
-                                                        </div>
-                                                        <div class="col-6">
-                                                            <label class="form-label">Costo (Sin IVA):</label>
-                                                            <input type="number" step="0.01" name="costo_sin_iva" class="form-control" placeholder="0.00">
-                                                        </div>
-                                                    </div>
+                         
 
-                                                    <div class="row mt-3">
-                                                        <div class="col-6">
-                                                            <label class="form-label">Mayorista (Columna 2):</label>
-                                                            <input type="number" step="0.01" name="columna2" class="form-control" placeholder="Precio especial">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="mt-3">
-                                                        <label class="form-label text-success">Referencia en USD ($):</label>
-                                                        <div class="input-group">
-                                                            <span class="input-group-prepend"><div class="input-group-text bg-success text-white">$</div></span>
-                                                            <input type="number" step="0.01" name="usd_ref" class="form-control" placeholder="0.00">
-                                                        </div>
-                                                    </div>
                                                 </div>
                                             </div>
 
