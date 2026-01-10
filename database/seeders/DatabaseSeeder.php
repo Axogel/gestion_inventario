@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             UserTableSeeder::class,
             DivisaSeeder::class,
             LibroMayorSeeder::class,
+            ServiceSeeder::class,
         ]);
         // \App\Models\User::factory(10)->create();
 

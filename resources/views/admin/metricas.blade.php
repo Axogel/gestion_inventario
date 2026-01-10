@@ -17,7 +17,7 @@
                 <div class="card text-white bg-success">
                     <div class="card-body">
                         <h6>Facturación Total</h6>
-                        <h3>{{ number_format($metricas['facturacion_total'], 2, ',', '.') }} Bs</h3>
+                        <h3>{{ number_format($metricas['facturacion_total'], 2, ',', '.') }} cop</h3>
                     </div>
                 </div>
             </div>
@@ -31,14 +31,6 @@
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="card text-white bg-dark">
-                    <div class="card-body">
-                        <h6>Valor Inventario</h6>
-                        <h3>{{ number_format($metricas['valor_inventario'], 2, ',', '.') }} Bs</h3>
-                    </div>
-                </div>
-            </div>
         </div>
 
         {{-- PRODUCTO MÁS VENDIDO --}}

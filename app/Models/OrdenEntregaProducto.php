@@ -14,6 +14,9 @@ class OrdenEntregaProducto extends Model
         'orden_id',
         'product_id',
         'cantidad',
+        'subtotal',
+        'type',
+        'service_id'
     ];
 
     public function orden()
@@ -24,5 +27,9 @@ class OrdenEntregaProducto extends Model
     public function producto()
     {
         return $this->belongsTo(Inventario::class, 'product_id');
+    }
+    public function service()
+    {
+        return $this->belongsTo(Services::class, 'service_id');
     }
 }

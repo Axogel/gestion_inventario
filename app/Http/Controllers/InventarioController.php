@@ -7,6 +7,7 @@ use App\Exports\disponibleExport;
 use App\Exports\InventarioExport;
 use App\Imports\InventarioImport;
 use App\Models\Inventario;
+use App\Models\movementInventory;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -35,6 +36,51 @@ class InventarioController extends Controller
     {
         $inventario = Inventario::where("disponibilidad", 1)->get();
         return view("disponible.index", compact("inventario"));
+    }
+    public function donation()
+    {
+        $products = Inventario::all();
+
+        return view("inventario.donation", compact("products"));
+    }
+
+
+    public function donationStore(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:inventarios,id',
+            'items.*.cantidad' => 'required|numeric|min:1',
+        ]);
+
+        $items = $request->input('items');
+        $total = 0;
+
+        foreach ($items as $item) {
+            $product = Inventario::findOrFail($item['product_id']);
+            $afterQty = $product->stock;
+            if ($product->stock < $item['cantidad']) {
+                return back()->with('error', 'No hay suficiente stock para el producto: ' . $product->producto);
+            }
+
+            $product->stock -= $item['cantidad'];
+            $product->save();
+
+            $total += $product->precio * $item['cantidad'];
+
+            $movement = new movementInventory();
+            $movement->product_id = $item['product_id'];
+            $movement->quantity = $item['cantidad'];
+            $movement->type = 'output';
+            $movement->reason = 'donacion';
+            $movement->description = $product->producto;
+            $movement->balance_after = $afterQty;
+
+            $movement->save();
+        }
+
+
+        return redirect()->route('inventario.index')->with('success', 'Donación creada exitosamente');
     }
     public function alquilado()
     {

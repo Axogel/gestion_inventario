@@ -15,18 +15,19 @@ class DivisaSeeder extends Seeder
     {
         $divisa = [
             [
-                'name' => 'USD',
+                'name' => 'COP',
                 'tasa' => 1
             ],
             [
-                'name' => 'COP',
-                'tasa' => 3890
+                'name' => 'USD',
+                'tasa' => 3700
             ],
+
             [
                 'name' => 'Bs',
-                'tasa'=> 35.90
+                'tasa' => 5
             ]
         ];
-        Divisa::insert($divisa);   
-     }
+        Divisa::insert($divisa);
+    }
 }

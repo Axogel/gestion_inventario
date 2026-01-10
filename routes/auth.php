@@ -1,4 +1,8 @@
 <?php
+use App\Http\Controllers\BoxController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\MovementInventoryController;
+use App\Http\Controllers\ServicesController;
 use Illuminate\Support\Facades\Route;
 use App\Mail\Transfer;
 use Illuminate\Support\Facades\Auth;
@@ -32,9 +36,21 @@ Route::middleware([Authenticate::class])->group(function () {
 
     //new home
     Route::get('metricas', [HomeController::class, 'metricas'])->name('metricas');
-
+    Route::get('donation', [InventarioController::class, 'donation'])->name('donation');
+    route::post('donation', [InventarioController::class, 'donationStore'])->name('donation.store');
     Route::get('orden/today', [OrdenEntregaController::class, 'today'])->name('orden.today');
+    Route::resource('box', BoxController::class);
+    Route::post('/box/close/{id}', [BoxController::class, 'closeBox'])->name('box.close');
+    Route::get('movement', [MovementInventoryController::class, 'index'])->name('movement.index');
+    Route::resource('services', ServicesController::class);
 
+
+    //deudas
+    Route::get('deudores', [OrdenEntregaController::class, 'deudores'])->name('deudores');
+    Route::put('orden/deuda/{id}/pagar', [OrdenEntregaController::class, 'paidDebit'])
+        ->name('orden.paidDebit');
+
+    Route::resource('expenses', ExpenseController::class);
     Route::resource('factura', FacturaController::class);
     Route::resource('notificacion', NotificacionController::class);
     Route::get('factura/create/new', [FacturaController::class, 'new'])->name('factura.new');

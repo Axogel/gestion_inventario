@@ -37,6 +37,12 @@ class ordenEntrega extends Model
         )->withPivot('cantidad');
     }
 
+    // Cambia esto en tu modelo
+    public function pagos()
+    {
+        // Una orden tiene muchos pagos registrados
+        return $this->hasMany(OrdenPagos::class, 'orden_id');
+    }
     /**
      * Cliente (relación faltante en tu código)
      */
