@@ -30,13 +30,8 @@ class InventarioExport implements FromCollection, WithHeadings, WithMapping
             'Codigo',
             'Producto',
             'precio',
-            'precio_sin_iva',
-            'costo',
-            'costo_sin_iva',
-            'columna2',
             'stock',
             'stock_min',
-            'usd_ref',
             'created_at'
         ];
     }
@@ -47,13 +42,8 @@ class InventarioExport implements FromCollection, WithHeadings, WithMapping
             $row['codigo'],
             $row['producto'],
             $row['precio'],
-            $row['precio_sin_iva'],
-            $row['costo'],
-            $row['costo_sin_iva'],
-            $row['columna2'],
             $row['stock'],
             $row['stock_min'],
-            $row['usd_ref'],
             $row['created_at'],
         ];
     }

@@ -3,12 +3,28 @@
 @section('content')
     <div class="container">
         <div class="page-header d-flex justify-content-between">
+
+    
             <h4 class="page-title">Gastos Operativos</h4>
             <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
                 <i class="fe fe-plus"></i> Registrar Nuevo Gasto
             </button>
         </div>
-
+@if ($errors->any())
+    <div class="alert alert-danger shadow-sm border-0" role="alert">
+        <div class="d-flex">
+            <i class="fas fa-exclamation-circle mr-2 mt-1"></i>
+            <div>
+                <strong>¡Atención!</strong>
+                <ul class="mb-0 mt-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    </div>
+@endif
         <div class="card mt-4">
             <div class="card-body">
                 <table class="table table-bordered table-hover">

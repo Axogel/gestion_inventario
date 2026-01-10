@@ -151,6 +151,11 @@
                                                     <i class="fa fa-undo mr-1"></i> Devolución
                                                 </button>
                                             </form>
+                                            {{-- Botón de Factura --}}
+                                            <a href="{{ route('orden.print', $orden->id) }}"
+                                                class="btn btn-sm btn-outline-primary btn-factura" title="Factura">
+                                                <i class="fa fa-file-invoice mr-1"></i> Factura
+                                            </a>
                                         </td>
                                     </tr>
                                 @empty

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Box;
 use App\Models\Expense;
 use App\Http\Controllers\Controller;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
@@ -38,9 +40,37 @@ class ExpenseController extends Controller
             'fecha' => 'required|date',
         ]);
 
+        // 1. Verificar si la caja de hoy está abierta
+        $today = date('Y-m-d');
+        $actuallyBox = Box::whereDate('date', $today)->first();
+
+        if (!$actuallyBox || $actuallyBox->status !== 'open') {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'No se puede registrar el gasto: La caja de hoy no ha sido abierta.']);
+        }
+
+        // 2. Calcular el dinero disponible actualmente en caja (Neto)
+        $totalCollected = Payment::whereDate('created_at', $today)->sum('monto_base');
+        $totalExpenses = Expense::whereDate('fecha', $today)->sum('monto');
+
+        // Dinero real disponible = Inicial + Ventas - Gastos anteriores
+        $disponible = $actuallyBox->init + $totalCollected - $totalExpenses;
+
+        // 3. Verificar si el monto del nuevo gasto supera lo que hay en caja
+        if ($request->monto > $disponible) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => "Fondos insuficientes. Solo hay $" . number_format($disponible, 2) . " en caja."]);
+        }
+
+        // 4. Si todo está bien, crear el gasto
         Expense::create($request->all());
 
-        return redirect()->back()->with('success', 'Gasto registrado correctamente');
+        // 5. Opcional: Actualizar el valor 'final' de la caja automáticamente
+        $actuallyBox->decrement('final', $request->monto);
+
+        return redirect()->back()->with('success', 'Gasto registrado y restado de caja correctamente');
     }
 
     /**

@@ -13,6 +13,7 @@ use App\Models\OrdenEntregaProducto;
 use App\Models\OrdenPagos;
 use App\Models\Payment;
 use App\Models\Services;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
@@ -294,9 +295,22 @@ class OrdenEntregaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ordenEntrega $ordenEntrega)
+
+    public function show(OrdenEntrega $orden)
     {
-        //
+        $orden->load([
+            'items.producto',
+            'items.service',
+            'pagos',
+            'cliente',
+        ]);
+
+        $pdf = Pdf::loadView('orden.factura', compact('orden'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download(
+            'orden_' . $orden->id . '.pdf'
+        );
     }
 
     /**

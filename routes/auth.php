@@ -43,6 +43,8 @@ Route::middleware([Authenticate::class])->group(function () {
     Route::post('/box/close/{id}', [BoxController::class, 'closeBox'])->name('box.close');
     Route::get('movement', [MovementInventoryController::class, 'index'])->name('movement.index');
     Route::resource('services', ServicesController::class);
+    Route::get('orden/{orden}/print', [OrdenEntregaController::class, 'show'])
+        ->name('orden.print');
 
 
     //deudas

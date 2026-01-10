@@ -90,7 +90,7 @@
                                 <div class="row">
                                     <div class="col-6">
                                         <label class="form-label">Stock Actual:</label>
-                                        <input type="number" name="stock" class="form-control"
+                                        <input type="number" name="stock" id="stock-actual" class="form-control"
                                             value="{{ old('stock', $product->stock) }}">
                                     </div>
                                     <div class="col-6">
@@ -99,7 +99,15 @@
                                             value="{{ old('stock_min', $product->stock_min ?? 5) }}">
                                     </div>
                                 </div>
-
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label class="form-label">Stock nuevo que llegó (Sumar):</label>
+                                        <input type="number" id="stock-nuevo" class="form-control"
+                                            placeholder="Escribe para sumar..." value="">
+                                        <small class="text-muted">Este valor se sumará al stock actual
+                                            automáticamente.</small>
+                                    </div>
+                                </div>
 
                             </div>
 
@@ -138,4 +146,29 @@
 @section('js')
     <script src="{{URL::asset('assets/plugins/select2/select2.full.min.js')}}"></script>
     <script src="{{URL::asset('assets/js/select2.js')}}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputActual = document.getElementById('stock-actual');
+            const inputNuevo = document.getElementById('stock-nuevo');
+
+            // Guardamos el valor original que viene de la base de datos
+            const stockOriginal = parseInt(inputActual.value) || 0;
+
+            inputNuevo.addEventListener('input', function () {
+                // Obtenemos lo que el usuario escribe en "Stock nuevo"
+                const cantidadNueva = parseInt(this.value) || 0;
+
+                // Sumamos al valor original y lo ponemos en el input que se enviará
+                inputActual.value = stockOriginal + cantidadNueva;
+
+                // Opcional: Cambiar color para indicar que se modificó
+                if (cantidadNueva > 0) {
+                    inputActual.style.backgroundColor = '#e7fff3'; // Verde clarito
+                } else {
+                    inputActual.style.backgroundColor = '';
+                }
+            });
+        });
+    </script>
 @endsection

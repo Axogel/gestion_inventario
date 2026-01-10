@@ -18,7 +18,6 @@
                                 <th>Monto Final</th>
                                 <th>Estado</th>
                                 <th>Diferencia</th>
-                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,11 +59,7 @@
                                             ---
                                         @endif
                                     </td>
-                                    <td>
-                                        <a href="{{ route('box.show', $box->id) }}" class="btn btn-sm btn-info">
-                                            <i class="fe fe-eye"></i> Ver Detalle
-                                        </a>
-                                    </td>
+                   
                                 </tr>
                             @endforeach
                         </tbody>

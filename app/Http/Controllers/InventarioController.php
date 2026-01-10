@@ -122,20 +122,6 @@ class InventarioController extends Controller
      */
     public function store(Request $request)
     {
-
-        //         $table->id('codigo');
-        // $table->id('nro');
-
-        // $table->string("producto");
-        // $table->bigInteger("precio");
-        // $table->bigInteger("precio_sin_iva");
-        // $table->bigInteger("costo");
-        // $table->bigInteger("costo_sin_iva");
-        // $table->bigInteger("columna2");
-
-        // $table->string("stock");
-        // $table->string("stock_min");
-        // $table->string("usd_ref")->nullable();
         $request->validate([
             'codigo' => 'required|string| unique:inventarios,codigo',
             'producto' => 'required|string',

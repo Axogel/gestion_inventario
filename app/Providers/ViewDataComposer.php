@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Inventario;
 use App\Models\Notificacion;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -22,11 +23,13 @@ class ViewDataComposer extends ServiceProvider
     public function boot(): void
     {
         View::composer('*', function ($view) {
-            // Lógica para obtener datos de la base de datos
-            $notificaciones = Notificacion::all();
+            // Usamos query() para asegurar una consulta limpia a la DB
+            $productosCriticos = Inventario::query()
+                ->whereRaw('CAST(stock AS SIGNED) <= CAST(stock_min AS SIGNED)')
+                ->orderBy('stock', 'asc')
+                ->get();
 
-            // Compartir la variable con la vista
-            $view->with('notificaciones', $notificaciones);
+            $view->with('productosCriticos', $productosCriticos);
         });
     }
 }
