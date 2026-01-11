@@ -43,8 +43,8 @@
         >
     </div>
 </form>
-
-                <div class="d-flex flex-wrap" style="gap: 10px;">
+								@if(Auth::user()->isSuper())
+                                             <div class="d-flex flex-wrap" style="gap: 10px;">
                     <form action="{{ route('exportInventario') }}" method="POST">
                         @csrf
                         <input type="hidden" name="searchTerm" id="searchTerm">
@@ -61,6 +61,8 @@
                         <i class="fa fa-plus"></i> Nuevo Producto
                     </a>
                 </div>
+@endif
+   
             </div>
 
             <div class="card-body">

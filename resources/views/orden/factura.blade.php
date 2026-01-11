@@ -56,7 +56,7 @@
         <strong>Fecha:</strong> {{ $orden->created_at->format('d/m/Y H:i') }} <br>
 
         <strong>Cliente:</strong>
-        {{ $orden->cliente->nombre ?? 'CONSUMIDOR FINAL' }}
+        {{ $orden->cliente->name ?? 'CONSUMIDOR FINAL' }}
     </div>
 
     <table>

@@ -23,10 +23,13 @@
                             </a>
 							<ul class="slide-menu">
 								<li><a class="slide-item" href="{{ route('inventario.index') }}"><span>Inventario</span></a></li>
+
+								@if(Auth::user()->isSuper())
 								<li><a class="slide-item" href="{{ route('inventario.create') }}"><span>Agregar Producto</span></a></li>
 								<li><a class="slide-item" href="{{ route('movement.index') }}"><span>Historial</span></a></li>
 								<li><a class="slide-item" href="{{ route('donation') }}"><span>Uso de Oficina (Donaciones)</span></a></li>
 
+								@endif
 
 
 
@@ -42,8 +45,9 @@
 							<ul class="slide-menu">
 								<li><a class="slide-item" href="{{ route('box.create') }}"><span>Caja de Hoy</span></a></li>
 								<li><a class="slide-item" href="{{ route('orden.create') }}"><span>Crear Orden</span></a></li>
-								<li><a class="slide-item" href="{{ route('orden.index') }}"><span>Devoluciones</span></a></li>
-
+								@if(Auth::user()->isSuper())
+								<li><a class="slide-item" href="{{ route('orden.index') }}"><span>Ordenes del dia </span></a></li>
+								@endif
 							</ul>
 						</li>
 
@@ -58,9 +62,9 @@
 
 									<li><a class="slide-item" href="{{ route('box.index') }}"><span>Historial administrativo</span></a></li>
 									<li><a class="slide-item" href="{{ route('expenses.index') }}"><span>Gastos</span></a></li>
-									<li><a class="slide-item" href="{{ route('deudores') }}"><span>Deudores</span></a></li>
-								@endif
 								<li><a class="slide-item" href="{{ route('divisas.create') }}"><span>Divisas</span></a></li>
+								@endif
+								<li><a class="slide-item" href="{{ route('deudores') }}"><span>Deudores</span></a></li>
 
 
 							</ul>

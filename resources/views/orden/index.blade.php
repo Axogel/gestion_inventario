@@ -111,12 +111,18 @@
                                         <td>{{ $orden->created_at->format('d/m/Y H:i') }}</td>
                                         <td>
                                             @if($orden->cliente)
-                                                {{ $orden->cliente->nombre }} {{ $orden->cliente->apellido }}
+                                                {{ $orden->cliente->name }} {{ $orden->cliente->telefono }}
                                             @else
                                                 <span class="text-muted">Consumidor Final</span>
                                             @endif
                                         </td>
-                                        <td><span class="badge badge-light border">{{ $orden->method }}</span></td>
+<td>
+    @foreach($orden->pagos as $pago)
+        <span class="badge badge-light border me-1">
+            {{ $pago->method }}
+        </span>
+    @endforeach
+</td>
                                         <td class="text-right font-weight-bold">
                                             {{ number_format($orden->subtotal, 2, ',', '.') }}</td>
                                         <td>
