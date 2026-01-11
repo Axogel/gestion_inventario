@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('inventarios', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo')->unique()->index();
+            $table->string('codigo')->unique()->index()->nullable();
             $table->string("producto");
             $table->bigInteger("precio");
             $table->string("stock");

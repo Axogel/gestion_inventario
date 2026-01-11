@@ -15,12 +15,15 @@ class InventarioImport implements ToModel, WithHeadingRow, WithChunkReading, Ski
 
     public function model(array $row)
     {
-        // Evitar registros sin código o producto
-        if (empty($row['codigo']) || empty($row['articulo'])) {
+        // Validación mínima
+        if (empty($row['articulo'])) {
             return null;
         }
 
-        $codigo = trim($row['codigo']);
+        $id = isset($row['id']) ? (int) $row['id'] : null;
+        $codigo = isset($row['codigo']) && trim($row['codigo']) !== ''
+            ? trim($row['codigo'])
+            : null;
 
         $data = [
             'producto' => trim($row['articulo']),
@@ -29,19 +32,48 @@ class InventarioImport implements ToModel, WithHeadingRow, WithChunkReading, Ski
             'stock_min' => (int) ($row['stock_min'] ?? 0),
         ];
 
-        // Buscar producto por código
-        $productoExistente = Inventario::where('codigo', $codigo)->first();
+        /*
+        |--------------------------------------------------------------------------
+        | 1️⃣ PRIORIDAD ABSOLUTA: ID
+        |--------------------------------------------------------------------------
+        */
+        if ($id) {
+            $producto = Inventario::find($id);
 
-        if ($productoExistente) {
-            // Actualizar si existe
-            $productoExistente->update($data);
-            return $productoExistente;
-        } else {
-            // Crear nuevo registro
-            $data['codigo'] = $codigo;
-            return Inventario::create($data);
+            if ($producto) {
+                if ($codigo !== null) {
+                    $data['codigo'] = $codigo;
+                }
+
+                $producto->update($data);
+                return $producto;
+            }
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 2️⃣ BUSCAR POR CÓDIGO (SI EXISTE)
+        |--------------------------------------------------------------------------
+        */
+        if ($codigo !== null) {
+            $productoExistente = Inventario::where('codigo', $codigo)->first();
+
+            if ($productoExistente) {
+                $productoExistente->update($data);
+                return $productoExistente;
+            }
+
+            $data['codigo'] = $codigo;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | 3️⃣ CREAR NUEVO (CÓDIGO OPCIONAL)
+        |--------------------------------------------------------------------------
+        */
+        return Inventario::create($data);
     }
+
     private function parseMoney($value): int
     {
         if ($value === null || $value === '') {

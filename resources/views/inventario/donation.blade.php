@@ -65,22 +65,27 @@
         let rowIndex = 0;
 
         /* ================= BUSCADOR ================= */
-
         $('#product-search').on('input', function () {
             const query = $(this).val().toLowerCase().trim();
             const box = $('#product-results');
             box.empty();
 
-            if (query.length < 2) {
+            if (query.length < 1) {
                 box.hide();
                 return;
             }
 
-            const matches = products.filter(p =>
-                String(p.id).includes(query) ||
-                p.codigo.toLowerCase().includes(query) ||
-                p.producto.toLowerCase().includes(query)
-            );
+            const matches = products.filter(p => {
+                const id = String(p.id);
+                const codigo = (p.codigo ?? '').toString().toLowerCase();
+                const producto = (p.producto ?? '').toLowerCase();
+
+                return (
+                    id.includes(query) ||
+                    codigo.includes(query) ||
+                    producto.includes(query)
+                );
+            });
 
             if (!matches.length) {
                 box.hide();
@@ -89,13 +94,15 @@
 
             matches.slice(0, 10).forEach(p => {
                 box.append(`
-                <button type="button"
-                    class="list-group-item list-group-item-action product-item"
-                    data-id="${p.id}">
-                    <strong>${p.codigo}</strong> - ${p.producto}
-                    <span class="float-end">$${p.precio}</span>
-                </button>
-            `);
+                    <button type="button"
+                        class="list-group-item list-group-item-action product-item"
+                        data-id="${p.id}">
+                        <strong>ID ${p.id}</strong>
+                        ${p.codigo ? ` - ${p.codigo}` : ''}
+                        - ${p.producto}
+                        <span class="float-end">$${Number(p.precio).toFixed(2)}</span>
+                    </button>
+                `);
             });
 
             box.show();
@@ -114,7 +121,7 @@
 
         function addRow(product) {
 
-            let exists = $(`input[value="${product.id}"]`);
+            let exists = $(`.product-id[value="${product.id}"]`);
             if (exists.length) {
                 let qty = exists.closest('tr').find('.cantidad');
                 qty.val(parseInt(qty.val()) + 1).trigger('change');
@@ -125,9 +132,19 @@
             <tr data-price="${product.precio}">
                 <td>
                     <input type="hidden" name="items[${rowIndex}][type]" value="PRODUCT">
-                    <input type="hidden" name="items[${rowIndex}][product_id]" value="${product.id}">
-                    <input type="hidden" name="items[${rowIndex}][unit_price]" value="${product.precio}">
-                    ${product.codigo} - ${product.producto}
+
+                    <input type="hidden"
+                           class="product-id"
+                           name="items[${rowIndex}][product_id]"
+                           value="${product.id}">
+
+                    <input type="hidden"
+                           name="items[${rowIndex}][unit_price]"
+                           value="${product.precio}">
+
+                    <strong>${product.id}</strong>
+                    ${product.codigo ? ` - ${product.codigo}` : ''}
+                    - ${product.producto}
                 </td>
 
                 <td>
@@ -139,8 +156,8 @@
                         max="${product.stock}">
                 </td>
 
-                <td>$${product.precio.toFixed(2)}</td>
-                <td class="subtotal">$${product.precio.toFixed(2)}</td>
+                <td>$${Number(product.precio).toFixed(2)}</td>
+                <td class="subtotal">$${Number(product.precio).toFixed(2)}</td>
 
                 <td>
                     <button type="button" class="btn btn-danger btn-sm remove-row">X</button>

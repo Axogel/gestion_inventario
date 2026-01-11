@@ -24,13 +24,21 @@ class InventarioController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         Artisan::call('verificar:productos_vencidos');
 
-        $inventario = Inventario::all();
-        return view("inventario.index", compact("inventario"));
-        //
+        $search = $request->input('search');
+
+        $inventario = Inventario::when($search, function ($query) use ($search) {
+            $query->where('producto', 'like', "%{$search}%")
+                ->orWhere('codigo', 'like', "%{$search}%");
+        })
+            ->orderBy('producto')
+            ->paginate(10)
+            ->withQueryString(); // mantiene el search al cambiar de página
+
+        return view('inventario.index', compact('inventario', 'search'));
     }
     public function disponible()
     {
@@ -123,7 +131,7 @@ class InventarioController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'codigo' => 'required|string| unique:inventarios,codigo',
+            'codigo' => 'nullable|string| unique:inventarios,codigo',
             'producto' => 'required|string',
             'precio' => 'required|numeric',
             'stock' => 'required|numeric',
@@ -166,8 +174,8 @@ class InventarioController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
+            'codigo' => 'nullable|string| unique:inventarios,codigo',
             'producto' => 'required|string',
-            'codigo' => 'required|string',
             'precio' => 'required|numeric',
             'stock' => 'required|numeric',
             'stock_min' => 'required|numeric',

@@ -31,11 +31,19 @@
     <div class="col-xl-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
-                <div class="form-group mb-0">
-                    <label class="form-label">Buscar Producto:</label>
-                    <input type="text" id="search" class="form-control" placeholder="Nombre o código...">
-                </div>
-                
+     <form method="GET" action="{{ route('inventario.index') }}">
+    <div class="form-group mb-0">
+        <label class="form-label">Buscar Producto:</label>
+        <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Nombre o código..."
+            value="{{ request('search') }}"
+        >
+    </div>
+</form>
+
                 <div class="d-flex flex-wrap" style="gap: 10px;">
                     <form action="{{ route('exportInventario') }}" method="POST">
                         @csrf
@@ -109,8 +117,13 @@
                                 <td colspan="8" class="text-center">No hay productos registrados</td>
                             </tr>
                             @endforelse
+
                         </tbody>
+                        
                     </table>
+                    <div class="d-flex justify-content-center mt-4">
+                        {{ $inventario->links() }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -141,26 +154,4 @@
         </div>
     </div>
 </div>
-@endsection
-
-@section('js')
-<script>
-    // Buscador en tiempo real mejorado
-    document.getElementById('search').addEventListener('input', function() {
-        let filter = this.value.toLowerCase();
-        let rows = document.querySelectorAll('.producto-row');
-        document.getElementById("searchTerm").value = filter;
-
-        rows.forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(filter) ? '' : 'none';
-        });
-    });
-
-    // Función de borrado segura
-    function deleteItem(id) {
-        if (confirm("¿Seguro que deseas eliminar este producto del inventario?")) {
-            document.getElementById('delete-form-' + id).submit();
-        }
-    }
-</script>
 @endsection

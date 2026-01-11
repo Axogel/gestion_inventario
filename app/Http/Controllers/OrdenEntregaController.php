@@ -148,7 +148,6 @@ class OrdenEntregaController extends Controller
      */
     public function store(Request $request)
     {
-
         $request->validate([
             'client_id' => 'nullable|exists:clientes,id',
 
@@ -170,11 +169,9 @@ class OrdenEntregaController extends Controller
                 if ($request->filled('new_client.name')) {
                     $client = Cliente::create([
                         'name' => $request->new_client['name'],
-                        'direccion' => $request->new_client['direccion'],
-                        'fecha_nacimiento' => $request->new_client['fecha_nacimiento'],
+
                         'telefono' => $request->new_client['telefono'],
-                        'cedula' => $request->new_client['cedula'],
-                        'correo' => $request->new_client['correo'],
+
                     ]);
                     $request->merge(['client_id' => $client->id]);
                 }

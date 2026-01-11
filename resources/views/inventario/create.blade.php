@@ -52,7 +52,7 @@
                                                     <label class="form-label">Código de Barras / Interno:</label>
                                                     <div class="input-group mb-3">
                                                         <span class="input-group-prepend"><div class="input-group-text"><i class="fa fa-barcode"></i></div></span>
-                                                        <input type="text" name="codigo" class="form-control" placeholder="Ej: 7591234..." value="{{ old('codigo') }}" required>
+                                                        <input type="text" name="codigo" class="form-control" placeholder="Ej: 7591234..." value="{{ old('codigo') }}">
                                                     </div>
 
                                                     <label class="form-label">Descripción del Producto:</label>

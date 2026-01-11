@@ -12,12 +12,7 @@ class Cliente extends Model
 
     protected $fillable = [
         'name',
-        'direccion',
-        'fecha_nacimiento',
         'telefono',
-        'cedula',
-        'correo',
-
     ];
     use HasFactory;
 }
