@@ -57,18 +57,19 @@
     </div>
 
 @endsection
-
 @section('js')
     <script>
-
         let products = @json($products);
         let rowIndex = 0;
+        let selectedIndex = -1;
 
         /* ================= BUSCADOR ================= */
         $('#product-search').on('input', function () {
             const query = $(this).val().toLowerCase().trim();
             const box = $('#product-results');
+
             box.empty();
+            selectedIndex = -1;
 
             if (query.length < 1) {
                 box.hide();
@@ -80,11 +81,7 @@
                 const codigo = (p.codigo ?? '').toString().toLowerCase();
                 const producto = (p.producto ?? '').toLowerCase();
 
-                return (
-                    id.includes(query) ||
-                    codigo.includes(query) ||
-                    producto.includes(query)
-                );
+                return id.includes(query) || codigo.includes(query) || producto.includes(query);
             });
 
             if (!matches.length) {
@@ -95,8 +92,8 @@
             matches.slice(0, 10).forEach(p => {
                 box.append(`
                     <button type="button"
-                        class="list-group-item list-group-item-action product-item"
-                        data-id="${p.id}">
+                            class="list-group-item list-group-item-action product-item"
+                            data-id="${p.id}">
                         <strong>ID ${p.id}</strong>
                         ${p.codigo ? ` - ${p.codigo}` : ''}
                         - ${p.producto}
@@ -106,6 +103,33 @@
             });
 
             box.show();
+        });
+
+        /* ================= TECLADO ================= */
+        $('#product-search').on('keydown', function (e) {
+            const items = $('.product-item');
+            if (!items.length) return;
+
+            if (e.key === 'ArrowDown') {
+                selectedIndex = (selectedIndex + 1) % items.length;
+                items.removeClass('active');
+                items.eq(selectedIndex).addClass('active');
+                e.preventDefault();
+            }
+
+            if (e.key === 'ArrowUp') {
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                items.removeClass('active');
+                items.eq(selectedIndex).addClass('active');
+                e.preventDefault();
+            }
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0) {
+                    items.eq(selectedIndex).click();
+                }
+            }
         });
 
         $(document).on('click', '.product-item', function () {
@@ -118,59 +142,59 @@
         });
 
         /* ================= TABLA ================= */
-
         function addRow(product) {
 
-            let exists = $(`.product-id[value="${product.id}"]`);
-            if (exists.length) {
-                let qty = exists.closest('tr').find('.cantidad');
+            // 🔁 evitar duplicados
+            let existingRow = $('#products-table tbody tr').filter(function () {
+                return $(this).find('.product-id').val() == product.id;
+            });
+
+            if (existingRow.length) {
+                let qty = existingRow.find('.cantidad');
                 qty.val(parseInt(qty.val()) + 1).trigger('change');
                 return;
             }
 
             let row = `
-            <tr data-price="${product.precio}">
-                <td>
-                    <input type="hidden" name="items[${rowIndex}][type]" value="PRODUCT">
+                <tr data-price="${product.precio}">
+                    <td>
+                        <input type="hidden" name="items[${rowIndex}][type]" value="PRODUCT">
+                        <input type="hidden" class="product-id"
+                               name="items[${rowIndex}][product_id]"
+                               value="${product.id}">
+                        <input type="hidden"
+                               name="items[${rowIndex}][unit_price]"
+                               value="${product.precio}">
 
-                    <input type="hidden"
-                           class="product-id"
-                           name="items[${rowIndex}][product_id]"
-                           value="${product.id}">
+                        <strong>${product.id}</strong>
+                        ${product.codigo ? ` - ${product.codigo}` : ''}
+                        - ${product.producto}
+                    </td>
 
-                    <input type="hidden"
-                           name="items[${rowIndex}][unit_price]"
-                           value="${product.precio}">
+                    <td>
+                        <input type="number"
+                               name="items[${rowIndex}][cantidad]"
+                               class="form-control cantidad"
+                               value="1"
+                               min="1"
+                               max="${product.stock}">
+                    </td>
 
-                    <strong>${product.id}</strong>
-                    ${product.codigo ? ` - ${product.codigo}` : ''}
-                    - ${product.producto}
-                </td>
+                    <td>$${Number(product.precio).toFixed(2)}</td>
+                    <td class="subtotal">$${Number(product.precio).toFixed(2)}</td>
 
-                <td>
-                    <input type="number"
-                        name="items[${rowIndex}][cantidad]"
-                        class="form-control cantidad"
-                        value="1"
-                        min="1"
-                        max="${product.stock}">
-                </td>
-
-                <td>$${Number(product.precio).toFixed(2)}</td>
-                <td class="subtotal">$${Number(product.precio).toFixed(2)}</td>
-
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
-                </td>
-            </tr>
-        `;
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+                    </td>
+                </tr>
+            `;
 
             $('#products-table tbody').append(row);
             rowIndex++;
             calculateTotal();
         }
 
-        $(document).on('change keyup', '.cantidad', function () {
+        $(document).on('keyup change', '.cantidad', function () {
             let row = $(this).closest('tr');
             let price = parseFloat(row.data('price')) || 0;
             let qty = parseFloat($(this).val()) || 0;
@@ -186,14 +210,12 @@
         });
 
         /* ================= TOTAL ================= */
-
         function calculateTotal() {
             let total = 0;
-            $('.subtotal').each(function () {
+            $('#products-table tbody .subtotal').each(function () {
                 total += parseFloat($(this).text().replace('$', '')) || 0;
             });
             $('#total').text('$' + total.toFixed(2));
         }
-
     </script>
 @endsection

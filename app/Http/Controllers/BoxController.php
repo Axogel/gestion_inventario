@@ -53,14 +53,53 @@ class BoxController extends Controller
         $payments = Payment::whereDate('created_at', $today)->get();
         $actuallyBox = Box::whereDate('date', $today)->first();
 
-        // 1. Calcular ingresos y gastos
+        // Total ingresos
         $totalCollected = $payments->sum('monto_base');
-        $totalExpenses = Expense::whereDate('fecha', $today)->sum('monto'); // <--- Sumar gastos
 
-        // El neto es lo que debería haber físicamente
-        $netTotal = ($actuallyBox ? $actuallyBox->init : 0) + $totalCollected - $totalExpenses;
+        // Total gastos
+        $totalExpenses = Expense::whereDate('fecha', $today)->sum('monto');
 
-        return view('box.today', compact('payments', 'actuallyBox', 'totalCollected', 'totalExpenses', 'netTotal'));
+        // Neto en caja
+        $netTotal = ($actuallyBox ? $actuallyBox->init : 0)
+            + $totalCollected
+            - $totalExpenses;
+
+        // 🔥 AGRUPACIÓN POR MONEDA Y MÉTODO
+        $paymentsGrouped = $payments
+            ->groupBy('metodo_pago')
+            ->map(function ($methodGroup) {
+                return $methodGroup
+                    ->groupBy('moneda')
+                    ->map(function ($currencyGroup) {
+                        return [
+                            'total' => $currencyGroup->sum('monto_original'),
+                            'count' => $currencyGroup->count(),
+                        ];
+                    });
+            });
+        $expensesGrouped = Expense::whereDate('fecha', $today)
+            ->get()
+            ->groupBy('metodo_pago')
+            ->map(function ($methodGroup) {
+                return $methodGroup
+                    ->groupBy('moneda')
+                    ->map(function ($currencyGroup) {
+                        return [
+                            'total' => $currencyGroup->sum('monto'),
+                            'count' => $currencyGroup->count(),
+                        ];
+                    });
+            });
+
+        return view('box.today', compact(
+            'payments',
+            'paymentsGrouped',
+            'expensesGrouped',
+            'actuallyBox',
+            'totalCollected',
+            'totalExpenses',
+            'netTotal'
+        ));
     }
 
     public function closeBox(Request $request, $id)

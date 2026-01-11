@@ -27,40 +27,52 @@
 
             {{-- CASO 2: LA CAJA EXISTE --}}
         @else
-    <div class="row">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white text-center">
-            <div class="card-body">
-                <h6>Base Inicial</h6>
-                <h3>${{ number_format($actuallyBox->init, 2) }}</h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white text-center">
+                        <div class="card-body">
+                            <h6>Base Inicial</h6>
+                            <h3>${{ number_format($actuallyBox->init, 2) }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white text-center">
+                        <div class="card-body">
+                            <h6 class="d-flex justify-content-center align-items-center gap-1">
+                                Ventas (Ingresos)
+                                <i class="fe fe-info" role="button" data-bs-toggle="modal" data-bs-target="#detailModal"
+                                    data-type="income"></i>
+                            </h6>
+                            <h3>+${{ number_format($totalCollected, 2) }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white text-center">
+                        <div class="card-body">
+                            <h6 class="d-flex justify-content-center align-items-center gap-1">
+                                Gastos (Egresos)
+                                <i class="fe fe-info" role="button" data-bs-toggle="modal" data-bs-target="#detailModal"
+                                    data-type="expense"></i>
+                            </h6>
+                            <h3>-${{ number_format($totalExpenses, 2) }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white text-center">
+                        <div class="card-body">
+                            <h6 class="d-flex justify-content-center align-items-center gap-1">
+                                Debe haber en Caja
+                                <i class="fe fe-info" role="button" data-bs-toggle="modal" data-bs-target="#detailModal"
+                                    data-type="net"></i>
+                            </h6>
+                            <h3>${{ number_format($netTotal, 2) }}</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white text-center">
-            <div class="card-body">
-                <h6>Ventas (Ingresos)</h6>
-                <h3>+${{ number_format($totalCollected, 2) }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-danger text-white text-center">
-            <div class="card-body">
-                <h6>Gastos (Egresos)</h6>
-                <h3>-${{ number_format($totalExpenses, 2) }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white text-center">
-            <div class="card-body">
-                <h6>Debe haber en Caja</h6>
-                <h3>${{ number_format($netTotal, 2) }}</h3>
-            </div>
-        </div>
-    </div>
-</div>
 
             <div class="card mt-4">
                 <div class="card-header d-flex justify-content-between">
@@ -100,6 +112,22 @@
             </div>
         @endif
     </div>
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" id="detailModalBody">
+                    {{-- contenido dinámico --}}
+                </div>
+
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="closeBoxModal" tabindex="-1">
         <div class="modal-dialog">
@@ -121,4 +149,79 @@
             </form>
         </div>
     </div>
+@endsection
+@section('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalTitle = document.getElementById('detailModalTitle');
+            const modalBody = document.getElementById('detailModalBody');
+
+            document.querySelectorAll('[data-type]').forEach(icon => {
+                icon.addEventListener('click', () => {
+                    const type = icon.dataset.type;
+
+                    if (type === 'income') {
+                        modalTitle.innerText = 'Detalle de Ingresos';
+                        modalBody.innerHTML = `
+                        <p><strong>Total Ingresos:</strong> ${{ number_format($totalCollected, 2) }}</p>
+                        <hr>
+                        @foreach($paymentsGrouped as $currency => $methods)
+                            <h6>{{ $currency }}</h6>
+                            @foreach($methods as $method => $data)
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ $method }}</span>
+                                    <strong>${{ number_format($data['total'], 2) }}</strong>
+                                </div>
+                            @endforeach
+                            <hr>
+                        @endforeach
+                    `;
+                    }
+
+                    if (type === 'expense') {
+                        modalTitle.innerText = 'Detalle de Gastos';
+                        modalBody.innerHTML = `
+                        <p><strong>Total Gastos:</strong> -${{ number_format($totalExpenses, 2) }}</p>
+                    `;
+                    }
+
+  if (type === 'net') {
+    modalTitle.innerText = 'Resumen por Moneda y Método';
+
+    modalBody.innerHTML = `
+        <h5 class="text-success">Ingresos</h5>
+        @foreach($paymentsGrouped as $currency => $methods)
+            <h6 class="mt-2">{{ $currency }}</h6>
+            @foreach($methods as $method => $data)
+                <div class="d-flex justify-content-between">
+                    <span>{{ $method }} ({{ $data['count'] }})</span>
+                    <strong class="text-success">
+                        ${{ number_format($data['total'], 2) }}
+                    </strong>
+                </div>
+            @endforeach
+            <hr>
+        @endforeach
+
+        <h5 class="text-danger mt-3">Gastos</h5>
+        @foreach($expensesGrouped as $currency => $methods)
+            <h6 class="mt-2">{{ $currency }}</h6>
+            @foreach($methods as $method => $data)
+                <div class="d-flex justify-content-between">
+                    <span>{{ $method }} ({{ $data['count'] }})</span>
+                    <strong class="text-danger">
+                        -${{ number_format($data['total'], 2) }}
+                    </strong>
+                </div>
+            @endforeach
+            <hr>
+        @endforeach
+    `;
+}
+
+                });
+            });
+        });
+    </script>
+
 @endsection

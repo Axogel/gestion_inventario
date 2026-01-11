@@ -174,25 +174,45 @@ class InventarioController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'codigo' => 'nullable|string| unique:inventarios,codigo',
+            'codigo' => 'nullable|string|unique:inventarios,codigo,' . $id,
             'producto' => 'required|string',
             'precio' => 'required|numeric',
             'stock' => 'required|numeric',
             'stock_min' => 'required|numeric',
-
         ]);
 
         $producto = Inventario::findOrFail($id);
 
+        // 🔹 Stock anterior
+        $oldStock = $producto->stock;
+        $newStock = $request->input('stock');
+
+        // 🔹 Actualizar datos
         $producto->producto = $request->input('producto');
         $producto->codigo = $request->input('codigo');
         $producto->precio = $request->input('precio');
-        $producto->stock = $request->input('stock');
+        $producto->stock = $newStock;
         $producto->stock_min = $request->input('stock_min');
-        $producto->update();
+        $producto->save();
 
-        $success = array("message" => "Producto actualizado satisfactoriamente", "alert" => "success");
-        return redirect()->route('inventario.index')->with('success', $success);
+        // 🔥 Crear movimiento SOLO si cambió el stock
+        if ($oldStock != $newStock) {
+
+            $difference = abs($newStock - $oldStock);
+
+            $movement = new movementInventory();
+            $movement->product_id = $producto->id;
+            $movement->quantity = $difference;
+            $movement->type = $newStock > $oldStock ? 'input' : 'output';
+            $movement->reason = 'ajuste_manual';
+            $movement->description = 'Ajuste manual desde edición de producto';
+            $movement->balance_after = $newStock;
+            $movement->save();
+        }
+
+        return redirect()
+            ->route('inventario.index')
+            ->with('success', 'Producto actualizado satisfactoriamente');
     }
 
     /**
