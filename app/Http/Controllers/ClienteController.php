@@ -13,8 +13,8 @@ class ClienteController extends Controller
     public function index()
     {
 
-      $clientes =   Cliente::all();
-      return view('cliente.index', compact('clientes'));
+        $clientes = Cliente::all();
+        return view('cliente.index', compact('clientes'));
         //
     }
 
@@ -35,25 +35,17 @@ class ClienteController extends Controller
         $request->validate([
             'name' => 'required|string',
             'apellido' => 'required|string',
-            'direccion' => 'required|string',
             'telefono' => 'required|string',
-            'cedula' => 'required|numeric',
-            'fecha_nacimiento' => 'required',
-            'correo' => 'required'
 
         ]);
         $client = new Cliente;
-        $client->name =   $request->input("name") . " " . $request->input("apellido");
-        $client->fecha_nacimiento =$request->input("fecha_nacimiento");
+        $client->name = $request->input("name") . " " . $request->input("apellido");
         $client->telefono = $request->input("telefono");
-        $client->direccion = $request->input("direccion");
-        $client->correo = $request->input("correo");
-        $client->cedula =  $request->input("cedula");
         $client->save();
 
 
         $success = array("message" => "Cliente registrado Satisfactoriamente", "alert" => "success");
-        return redirect()->route('cliente.index')->with('success',$success);
+        return redirect()->route('cliente.index')->with('success', $success);
         //
     }
 
@@ -81,23 +73,15 @@ class ClienteController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'direccion' => 'required|string',
-            'fecha_nacimiento' => 'required',
-            'telefono' => 'required|string',
-            'cedula' => 'required|numeric',
-            'correo'=> 'required'
+            'telefono' => 'required|string'
         ]);
         $updated = Cliente::where("id", $cliente->id);
         $updated->update([
             'name' => $request->input("name"),
-            'fecha_nacimiento' => $request->input("fecha_nacimiento"),
-            'direccion' => $request->input("direccion"),
-            'telefono' => $request->input("telefono"),
-            'cedula' => $request->input("cedula"),
-            'correo' => $request->input("correo")
+            'telefono' => $request->input("telefono")
         ]);
         $success = array("message" => "Cliente editado Satisfactoriamente", "alert" => "success");
-        return redirect()->route('cliente.index')->with('success',$success);
+        return redirect()->route('cliente.index')->with('success', $success);
         //
     }
 
@@ -107,6 +91,6 @@ class ClienteController extends Controller
     public function destroy(Cliente $cliente)
     {
         $cliente->delete();
-        return redirect()->route('cliente.index')->with('success','Cliente Eliminado.');
+        return redirect()->route('cliente.index')->with('success', 'Cliente Eliminado.');
     }
 }
