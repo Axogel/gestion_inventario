@@ -68,7 +68,7 @@
                                     <th>Tipo</th>
                                     <th>Cantidad</th>
                                     <th>Motivo</th>
-                                    <th>Balance Final</th>
+                                    <th>stock Final</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -78,7 +78,7 @@
                                         <td>{{ $movement->created_at->format('d/m/Y H:i') }}</td>
                                         <td>
                                             <strong>{{ $movement->description }}</strong><br>
-                              
+
                                         </td>
                                         <td>
                                             @if($movement->type === 'input')

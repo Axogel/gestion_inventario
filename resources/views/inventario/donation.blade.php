@@ -78,10 +78,9 @@
 
             const matches = products.filter(p => {
                 const id = String(p.id);
-                const codigo = (p.codigo ?? '').toString().toLowerCase();
                 const producto = (p.producto ?? '').toLowerCase();
 
-                return id.includes(query) || codigo.includes(query) || producto.includes(query);
+                return id.includes(query) || producto.includes(query);
             });
 
             if (!matches.length) {
@@ -91,15 +90,15 @@
 
             matches.slice(0, 10).forEach(p => {
                 box.append(`
-                    <button type="button"
-                            class="list-group-item list-group-item-action product-item"
-                            data-id="${p.id}">
-                        <strong>ID ${p.id}</strong>
-                        ${p.codigo ? ` - ${p.codigo}` : ''}
-                        - ${p.producto}
-                        <span class="float-end">$${Number(p.precio).toFixed(2)}</span>
-                    </button>
-                `);
+                                <button type="button"
+                                        class="list-group-item list-group-item-action product-item"
+                                        data-id="${p.id}">
+                                    <strong>ID ${p.id}</strong>
+
+                                    - ${p.producto}
+                                    <span class="float-end">$${Number(p.precio).toFixed(2)}</span>
+                                </button>
+                            `);
             });
 
             box.show();
@@ -156,38 +155,38 @@
             }
 
             let row = `
-                <tr data-price="${product.precio}">
-                    <td>
-                        <input type="hidden" name="items[${rowIndex}][type]" value="PRODUCT">
-                        <input type="hidden" class="product-id"
-                               name="items[${rowIndex}][product_id]"
-                               value="${product.id}">
-                        <input type="hidden"
-                               name="items[${rowIndex}][unit_price]"
-                               value="${product.precio}">
+                            <tr data-price="${product.precio}">
+                                <td>
+                                    <input type="hidden" name="items[${rowIndex}][type]" value="PRODUCT">
+                                    <input type="hidden" class="product-id"
+                                           name="items[${rowIndex}][product_id]"
+                                           value="${product.id}">
+                                    <input type="hidden"
+                                           name="items[${rowIndex}][unit_price]"
+                                           value="${product.precio}">
 
-                        <strong>${product.id}</strong>
-                        ${product.codigo ? ` - ${product.codigo}` : ''}
-                        - ${product.producto}
-                    </td>
+                                    <strong>${product.id}</strong>
+                                    ${product.codigo ? ` - ${product.codigo}` : ''}
+                                    - ${product.producto}
+                                </td>
 
-                    <td>
-                        <input type="number"
-                               name="items[${rowIndex}][cantidad]"
-                               class="form-control cantidad"
-                               value="1"
-                               min="1"
-                               max="${product.stock}">
-                    </td>
+                                <td>
+                                    <input type="number"
+                                           name="items[${rowIndex}][cantidad]"
+                                           class="form-control cantidad"
+                                           value="1"
+                                           min="1"
+                                           max="${product.stock}">
+                                </td>
 
-                    <td>$${Number(product.precio).toFixed(2)}</td>
-                    <td class="subtotal">$${Number(product.precio).toFixed(2)}</td>
+                                <td>$${Number(product.precio).toFixed(2)}</td>
+                                <td class="subtotal">$${Number(product.precio).toFixed(2)}</td>
 
-                    <td>
-                        <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
-                    </td>
-                </tr>
-            `;
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+                                </td>
+                            </tr>
+                        `;
 
             $('#products-table tbody').append(row);
             rowIndex++;

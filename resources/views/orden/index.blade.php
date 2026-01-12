@@ -119,11 +119,13 @@
 <td>
     @foreach($orden->pagos as $pago)
         <span class="badge badge-light border me-1">
-            {{ $pago->method }}
+            {{ $pago->method }}  
         </span>
+        {{ $pago->amount  }}{{ $pago->currency }}
     @endforeach
 </td>
                                         <td class="text-right font-weight-bold">
+                                       
                                             {{ number_format($orden->subtotal, 2, ',', '.') }}</td>
                                         <td>
                                             <details>

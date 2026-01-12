@@ -82,7 +82,7 @@ class InventarioController extends Controller
             $movement->type = 'output';
             $movement->reason = 'donacion';
             $movement->description = $product->producto;
-            $movement->balance_after = $afterQty;
+            $movement->balance_after = $product->stock;
 
             $movement->save();
         }
@@ -205,7 +205,7 @@ class InventarioController extends Controller
             $movement->quantity = $difference;
             $movement->type = $newStock > $oldStock ? 'input' : 'output';
             $movement->reason = 'ajuste_manual';
-            $movement->description = 'Ajuste manual desde edición de producto';
+            $movement->description = 'Ajuste manual desde edición de ' . $producto->producto;
             $movement->balance_after = $newStock;
             $movement->save();
         }

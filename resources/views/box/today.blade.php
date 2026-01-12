@@ -100,7 +100,7 @@
                             @foreach($payments as $payment)
                                 <tr>
                                     <td>{{ $payment->created_at->format('h:i A') }}</td>
-                                    <td><span class="badge bg-light text-dark">{{ $payment->metodo }}</span></td>
+                                    <td><span class="badge bg-light text-dark">{{ $payment->metodo_pago }}</span></td>
                                     <td>{{ $payment->moneda }}</td>
                                     <td>{{ number_format($payment->monto_original, 2) }}</td>
                                     <td><strong>${{ number_format($payment->monto_base, 2) }}</strong></td>
