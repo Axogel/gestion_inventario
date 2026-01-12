@@ -12,8 +12,38 @@
         }
 
         .header {
-            text-align: center;
+            width: 100%;
             margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .header-table {
+            width: 100%;
+            border: none;
+        }
+
+        .header-table td {
+            border: none;
+            vertical-align: middle;
+        }
+
+        .logo {
+            width: 120px;
+        }
+
+        .title {
+            text-align: right;
+        }
+
+        .title h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .title p {
+            margin: 2px 0 0;
+            font-size: 12px;
         }
 
         .info {
@@ -41,24 +71,39 @@
 
         .total {
             font-weight: bold;
+            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
 
+    {{-- HEADER CON LOGO --}}
     <div class="header">
-        <h2>FACTURA</h2>
-        <p>Orden #{{ $orden->id }}</p>
+        <table class="header-table">
+            <tr>
+                <td>
+                    <img
+                        src="{{ public_path('assets/images/brand/logo.png') }}"
+                        class="logo"
+                        alt="Logo Empresa">
+                </td>
+                <td class="title">
+                    <h2>Nota de Entrega</h2>
+                    <p>Orden #{{ $orden->id }}</p>
+                </td>
+            </tr>
+        </table>
     </div>
 
+    {{-- INFO --}}
     <div class="info">
         <strong>Fecha:</strong> {{ $orden->created_at->format('d/m/Y H:i') }} <br>
-
         <strong>Cliente:</strong>
         {{ $orden->cliente->name ?? 'CONSUMIDOR FINAL' }}
     </div>
 
+    {{-- ITEMS --}}
     <table>
         <thead>
             <tr>
@@ -71,11 +116,12 @@
         <tbody>
             @foreach($orden->items as $item)
                 <tr>
-                    @if($item->type == 'PRODUCT')
-                        <td>{{ $item->producto->producto }}</td>
-                    @else
-                        <td>{{ $item->service->name }}</td>
-                    @endif
+                    <td>
+                        {{ $item->type === 'PRODUCT'
+                            ? $item->producto->producto
+                            : $item->service->name
+                        }}
+                    </td>
                     <td class="right">{{ $item->cantidad }}</td>
                     <td class="right">
                         {{ number_format($item->subtotal, 2, ',', '.') }} COP
@@ -87,6 +133,7 @@
 
     <br>
 
+    {{-- TOTAL --}}
     <table>
         <tr>
             <td class="right total">TOTAL:</td>
@@ -98,13 +145,14 @@
 
     <br>
 
+    {{-- PAGOS --}}
     @if($orden->pagos->count())
         <strong>Pagos:</strong>
         <ul>
             @foreach($orden->pagos as $pago)
                 <li>
                     {{ $pago->method }} —
-                    {{ number_format($pago->amount, 2) }}
+                    {{ number_format($pago->amount, 2, ',', '.') }}
                     {{ $pago->currency }}
                 </li>
             @endforeach

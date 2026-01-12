@@ -17,6 +17,7 @@ class movementInventory extends Model
         'type',
         'reason',
         'balance_after',
+        'description',
     ];
 
 

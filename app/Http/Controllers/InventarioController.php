@@ -31,8 +31,8 @@ class InventarioController extends Controller
         $search = $request->input('search');
 
         $inventario = Inventario::when($search, function ($query) use ($search) {
-            $query->where('producto', 'like', "%{$search}%")
-                ->orWhere('codigo', 'like', "%{$search}%");
+            $query->where('id', 'like', "%{$search}%")
+                ->orWhere('producto', 'like', "%{$search}%");
         })
             ->orderBy('producto')
             ->paginate(10)
@@ -147,6 +147,15 @@ class InventarioController extends Controller
 
 
         $producto->save();
+        $movement = new movementInventory();
+        $movement->product_id = $producto->id;
+        $movement->quantity = $producto->stock;
+        $movement->type = 'input';
+        $movement->reason = 'Creacion de producto';
+        $movement->description = 'Nuevo producto:' . $producto->producto;
+        $movement->balance_after = $producto->stock;
+
+        $movement->save();
         $success = array("message" => "Producto creado Satisfactoriamente", "alert" => "success");
         return redirect()->route('inventario.index')->with('success', $success);
     }

@@ -8,6 +8,7 @@ use App\Models\Divisa;
 use App\Models\Fecha;
 use App\Models\Inventario;
 use App\Models\LibroDiario;
+use App\Models\movementInventory;
 use App\Models\ordenEntrega;
 use App\Models\OrdenEntregaProducto;
 use App\Models\OrdenPagos;
@@ -236,6 +237,14 @@ class OrdenEntregaController extends Controller
                         ]);
                     }
                 }
+                $tolerance = 0.10;
+                $difference = $totalPagadoBase - $subtotal;
+
+                if (abs($difference) < $tolerance) {
+                    // Se ajusta como pago exacto
+                    $totalPagadoBase = $subtotal;
+                }
+
                 if ($totalPagadoBase < $subtotal && !$orden->client_id) {
                     throw new \Exception(
                         '❌ Para dejar una orden fiada debes seleccionar o registrar un cliente'
@@ -331,53 +340,76 @@ class OrdenEntregaController extends Controller
      */
     public function destroy($id)
     {
-
         try {
             DB::transaction(function () use ($id) {
-                // 1. Cargar la orden con todas sus relaciones
-                $ordenes = ordenEntrega::all();
-                $orden = ordenEntrega::with(['items', 'pagos'])->findOrFail($id);
 
-                // 2. REINTEGRAR INVENTARIO
+                // 1. Cargar la orden con relaciones necesarias
+                $orden = ordenEntrega::with(['items', 'pagos'])->lockForUpdate()->findOrFail($id);
+
+                /*
+                |--------------------------------------------------------------------------
+                | 2. REINTEGRAR INVENTARIO
+                |--------------------------------------------------------------------------
+                */
                 foreach ($orden->items as $item) {
-                    // Solo reingramos si es un producto (los servicios no tienen stock)
-                    if ($item->type === 'PRODUCT' && $item->product_id) {
-                        $producto = Inventario::lockForUpdate()->find($item->product_id);
-                        if ($producto) {
-                            $producto->increment('stock', $item->cantidad);
 
+                    // Solo productos (servicios no manejan stock)
+                    if ($item->type === 'PRODUCT' && $item->product_id) {
+
+                        $producto = Inventario::lockForUpdate()->find($item->product_id);
+
+                        if (!$producto) {
+                            throw new \Exception('Producto no encontrado en inventario');
                         }
+
+                        // Reintegrar stock
+                        $producto->increment('stock', $item->cantidad);
+
+                        // Registrar movimiento
+                        movementInventory::create([
+                            'product_id' => $producto->id,
+                            'quantity' => $item->cantidad,
+                            'type' => 'input',
+                            'reason' => 'DEVOLUCION',
+                            'description' => 'Devolución del producto: ' . $producto->producto,
+                            'balance_after' => $producto->stock,
+                        ]);
                     }
                 }
 
-                // 3. ELIMINAR LOS PAGOS ASOCIADOS (Afecta el reporte de caja)
-                // Al borrar el registro en la tabla 'payments', el BoxController 
-                // dejará de sumarlo en el totalCollected de ese día.
-                $pagos = Payment::where('orden_id', $orden->id)->get();
-                $boxDate = Box::where('date', $orden->created_at->format('Y-m-d'))->first();
-                foreach ($pagos as $pago) {
-                    // if ($boxDate->status != 'closed')
-                    //     $boxDate->update([
-                    //         'final' => $boxDate->final - $pago->monto_base,
-                    //     ]);
-                    $pago->delete();
-                }
+                /*
+                |--------------------------------------------------------------------------
+                | 3. ELIMINAR PAGOS (AFECTA CAJA)
+                |--------------------------------------------------------------------------
+                */
+                Payment::where('orden_id', $orden->id)->delete();
 
-                // 4. ELIMINAR RELACIONES INTERNAS (Opcional si usas onDelete('cascade'))
-                // Borramos los detalles de productos y pagos internos de la orden
+                /*
+                |--------------------------------------------------------------------------
+                | 4. ELIMINAR RELACIONES INTERNAS
+                |--------------------------------------------------------------------------
+                */
                 $orden->items()->delete();
-                $orden->pagos()->delete(); // Estos son los de la tabla OrdenPagos
+                $orden->pagos()->delete(); // OrdenPagos (deudas, parciales)
 
-                // 5. FINALMENTE BORRAR LA ORDEN
+                /*
+                |--------------------------------------------------------------------------
+                | 5. ELIMINAR ORDEN
+                |--------------------------------------------------------------------------
+                */
                 $orden->delete();
             });
 
-            return redirect()->route('orden.index')
-                ->with('success', 'Devolución procesada: Stock reintegrado y caja actualizada.');
+            return redirect()
+                ->route('orden.index')
+                ->with('success', 'Devolución procesada correctamente. Stock y caja actualizados.');
 
-        } catch (\Exception $e) {
-            return redirect()->route('orden.index')
+        } catch (\Throwable $e) {
+
+            return redirect()
+                ->route('orden.index')
                 ->with('error', 'Error al procesar devolución: ' . $e->getMessage());
         }
     }
+
 }
