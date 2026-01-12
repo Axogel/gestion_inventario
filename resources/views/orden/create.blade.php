@@ -172,6 +172,13 @@
                     Total pagado: <strong id="total-paid">0.00</strong> Tiene que dar de vuelto: <strong
                         id="change">0.00</strong>
                 </div>
+                <div class="alert alert-warning">
+                    <strong>Falta por pagar:</strong><br>
+                    COP: <strong id="remaining-cop">$0.00</strong><br>
+                    USD: <strong id="remaining-usd">$0.00</strong><br>
+                    Bs: <strong id="remaining-bs">Bs 0.00</strong>
+                </div>
+
 
                 <h4>
                     Total General:
@@ -221,35 +228,35 @@
         // ========================================
         $('#add-payment').on('click', function () {
             let row = `
-                            <tr>
-                                <td>
-                                    <select name="payments[${paymentIndex}][method]" class="form-control">
-                                        <option value="EFECTIVO">Efectivo</option>
-                                        <option value="TRANSFERENCIA">Transferencia</option>
-                                        <option value="PAGO_MOVIL">Pago móvil</option>
-                                        <option value="PUNTO">Punto</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <select name="payments[${paymentIndex}][currency]" 
-                                            class="form-control currency-select">
-                                        ${Object.keys(divisas).map(c => `<option value="${c}">${c}</option>`).join('')}
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="number" step="0.01" name="payments[${paymentIndex}][amount]"
-                                           class="form-control payment-amount" value="0">
-                                </td>
-                                <td>
-                                    <input type="number" step="0.0001" name="payments[${paymentIndex}][exchange_rate]"
-                                           class="form-control exchange-rate" value="1">
-                                </td>
-                                <td class="payment-base">0.00</td>
-                                <td>
-                                    <button type="button" class="btn btn-danger btn-sm remove-payment">X</button>
-                                </td>
-                            </tr>
-                        `;
+                                                                    <tr>
+                                                                        <td>
+                                                                            <select name="payments[${paymentIndex}][method]" class="form-control">
+                                                                                <option value="EFECTIVO">Efectivo</option>
+                                                                                <option value="TRANSFERENCIA">Transferencia</option>
+                                                                                <option value="PAGO_MOVIL">Pago móvil</option>
+                                                                                <option value="PUNTO">Punto</option>
+                                                                            </select>
+                                                                        </td>
+                                                                        <td>
+                                                                            <select name="payments[${paymentIndex}][currency]" 
+                                                                                    class="form-control currency-select">
+                                                                                ${Object.keys(divisas).map(c => `<option value="${c}">${c}</option>`).join('')}
+                                                                            </select>
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" step="0.01" name="payments[${paymentIndex}][amount]"
+                                                                                class="form-control payment-amount" value="0">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" step="0.0001" name="payments[${paymentIndex}][exchange_rate]"
+                                                                                class="form-control exchange-rate" value="1">
+                                                                        </td>
+                                                                        <td class="payment-base">0.00</td>
+                                                                        <td>
+                                                                            <button type="button" class="btn btn-danger btn-sm remove-payment">X</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                `;
             $('#payments-table tbody').append(row);
             paymentIndex++;
         });
@@ -264,10 +271,20 @@
                 total += base;
             });
 
-            let totalCOPtemp = parseFloat($('#subtotal').val()) || 0;
+            let totalCOP = parseFloat($('#subtotal').val()) || 0;
+
             $('#total-paid').text(total.toFixed(2));
-            const change = ((totalCOPtemp - total) * -1).toFixed(2);
-            $('#change').text(change > 0 ? change : '0.00');
+
+            let change = total - totalCOP;
+            $('#change').text(change > 0 ? change.toFixed(2) : '0.00');
+
+            let remainingCOP = Math.max(totalCOP - total, 0);
+            let remainingUSD = remainingCOP / divisas['USD'];
+            let remainingBs = remainingCOP / divisas['Bs'];
+            console.log(remainingCOP, remainingUSD, remainingBs);
+            $('#remaining-cop').text('$' + remainingCOP.toFixed(2));
+            $('#remaining-usd').text('$' + remainingUSD.toFixed(2));
+            $('#remaining-bs').text('Bs ' + remainingBs.toFixed(2));
         }
 
         $(document).on('keyup change', '.payment-amount, .exchange-rate', calculatePayments);
@@ -313,14 +330,14 @@
 
             matches.slice(0, 10).forEach(p => {
                 resultsBox.append(`
-                                <button type="button" class="list-group-item list-group-item-action product-item"
-                                        data-id="${p.id}">
-                                    <strong>ID ${p.id}</strong>
+                                                                        <button type="button" class="list-group-item list-group-item-action product-item"
+                                                                                data-id="${p.id}">
+                                                                            <strong>ID ${p.id}</strong>
 
-                                    - ${p.producto} x(${p.stock})
-                                    <span class="float-end">$${Number(p.precio).toFixed(2)}</span>
-                                </button>
-                            `);
+                                                                            - ${p.producto} x(${p.stock})
+                                                                            <span class="float-end">$${Number(p.precio).toFixed(2)}</span>
+                                                                        </button>
+                                                                    `);
             });
 
             resultsBox.show();
@@ -376,31 +393,31 @@
 
             let currentIndex = rowIndex;
             let row = `
-                            <tr data-price="${product.precio}" data-index="${currentIndex}">
-                                <td>
-                                    <input type="hidden" class="product-id"
-                                           name="products[${currentIndex}][product_id]" value="${product.id}">
-                                    <input type="hidden" name="products[${currentIndex}][type]" value="PRODUCT">
-                                    <input type="hidden" name="products[${currentIndex}][unit_price]" value="${product.precio}">
-                                    <input type="hidden" class="subtotal-input"
-                                           name="products[${currentIndex}][subtotal]" value="${product.precio}">
-                                    <strong>${product.id}</strong>
-                                    ${product.codigo ? ` - ${product.codigo}` : ''}
-                                    - ${product.producto}
-                                </td>
-                                <td>
-                                    <input type="number" name="products[${currentIndex}][cantidad]"
-                                           class="form-control cantidad" value="1" min="1" max="${product.stock}">
-                                </td>
-                                <td class="precio">$${product.precio.toFixed(2)}</td>
-                                <td class="subtotal">$${product.precio.toFixed(2)}</td>
-                                <td class="subtotal_bs">Bs${(product.precio / divisas['Bs']).toFixed(2)}</td>
-                                <td class="subtotal_usd">$${(product.precio / divisas['USD']).toFixed(2)}</td>
-                                <td>
-                                    <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
-                                </td>
-                            </tr>
-                        `;
+                                                                    <tr data-price="${product.precio}" data-index="${currentIndex}">
+                                                                        <td>
+                                                                            <input type="hidden" class="product-id"
+                                                                                name="products[${currentIndex}][product_id]" value="${product.id}">
+                                                                            <input type="hidden" name="products[${currentIndex}][type]" value="PRODUCT">
+                                                                            <input type="hidden" name="products[${currentIndex}][unit_price]" value="${product.precio}">
+                                                                            <input type="hidden" class="subtotal-input"
+                                                                                name="products[${currentIndex}][subtotal]" value="${product.precio}">
+                                                                            <strong>${product.id}</strong>
+                                                                            ${product.codigo ? ` - ${product.codigo}` : ''}
+                                                                            - ${product.producto}
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" name="products[${currentIndex}][cantidad]"
+                                                                                class="form-control cantidad" value="1" min="1" max="${product.stock}">
+                                                                        </td>
+                                                                        <td class="precio">$${product.precio.toFixed(2)}</td>
+                                                                        <td class="subtotal">$${product.precio.toFixed(2)}</td>
+                                                                        <td class="subtotal_bs">Bs${(product.precio / divisas['Bs']).toFixed(2)}</td>
+                                                                        <td class="subtotal_usd">$${(product.precio / divisas['USD']).toFixed(2)}</td>
+                                                                        <td>
+                                                                            <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                `;
 
             $('#products-table tbody').append(row);
             rowIndex++;
@@ -413,36 +430,36 @@
         $('#add-product').on('click', function () {
             let currentIndex = rowIndex;
             let row = `
-                            <tr data-price="0" data-index="${currentIndex}">
-                                <td>
-                                    <select name="products[${currentIndex}][product_id]" 
-                                            class="form-control product-select" required>
-                                        <option value="">Seleccione</option>
-                                        ${products.map(p => `
-                                            <option value="${p.id}" data-price="${p.precio}" data-stock="${p.stock}">
-                                                ${p.producto} x(${p.stock}) stock
-                                            </option>
-                                        `).join('')}
-                                    </select>
-                                    <input type="hidden" name="products[${currentIndex}][type]" value="PRODUCT">
-                                    <input type="hidden" class="unit-price-input"
-                                           name="products[${currentIndex}][unit_price]" value="0">
-                                    <input type="hidden" class="subtotal-input"
-                                           name="products[${currentIndex}][subtotal]" value="0">
-                                </td>
-                                <td>
-                                    <input type="number" name="products[${currentIndex}][cantidad]" 
-                                           class="form-control cantidad" value="1" min="1">
-                                </td>
-                                <td class="precio">$0.00</td>
-                                <td class="subtotal">$0.00</td>
-                                <td class="subtotal_bs">Bs0.00</td>
-                                <td class="subtotal_usd">$0.00</td>
-                                <td>
-                                    <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
-                                </td>
-                            </tr>
-                        `;
+                                                                    <tr data-price="0" data-index="${currentIndex}">
+                                                                        <td>
+                                                                            <select name="products[${currentIndex}][product_id]" 
+                                                                                    class="form-control product-select" required>
+                                                                                <option value="">Seleccione</option>
+                                                                                ${products.map(p => `
+                                                                                    <option value="${p.id}" data-price="${p.precio}" data-stock="${p.stock}">
+                                                                                        ${p.producto} x(${p.stock}) stock
+                                                                                    </option>
+                                                                                `).join('')}
+                                                                            </select>
+                                                                            <input type="hidden" name="products[${currentIndex}][type]" value="PRODUCT">
+                                                                            <input type="hidden" class="unit-price-input"
+                                                                                name="products[${currentIndex}][unit_price]" value="0">
+                                                                            <input type="hidden" class="subtotal-input"
+                                                                                name="products[${currentIndex}][subtotal]" value="0">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" name="products[${currentIndex}][cantidad]" 
+                                                                                class="form-control cantidad" value="1" min="1">
+                                                                        </td>
+                                                                        <td class="precio">$0.00</td>
+                                                                        <td class="subtotal">$0.00</td>
+                                                                        <td class="subtotal_bs">Bs0.00</td>
+                                                                        <td class="subtotal_usd">$0.00</td>
+                                                                        <td>
+                                                                            <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                `;
 
             $('#products-table tbody').append(row);
             rowIndex++;
@@ -477,35 +494,35 @@
         function addServiceRow() {
             let currentIndex = rowIndex;
             let row = `
-                            <tr data-price="0" data-index="${currentIndex}">
-                                <td>
-                                    <select name="products[${currentIndex}][service_id]"
-                                            class="form-control service-select" required>
-                                        <option value="">Seleccione servicio</option>
-                                        ${services.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
-                                    </select>
-                                    <input type="hidden" name="products[${currentIndex}][type]" value="SERVICE">
-                                    <input type="hidden" class="unit-price-input"
-                                           name="products[${currentIndex}][price]" value="0">
-                                    <input type="hidden" class="subtotal-input"
-                                           name="products[${currentIndex}][subtotal]" value="0">
-                                </td>
-                                <td>
-                                    <input type="number" name="products[${currentIndex}][cantidad]"
-                                           class="form-control cantidadservice" value="1" min="1">
-                                </td>
-                                <td>
-                                    <input type="number" step="0.01" class="form-control service-price"
-                                           placeholder="Precio" value="0" required>
-                                </td>
-                                <td class="subtotal">$0.00</td>
-                                <td class="subtotal_bs">Bs0.00</td>
-                                <td class="subtotal_usd">$0.00</td>
-                                <td>
-                                    <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
-                                </td>
-                            </tr>
-                        `;
+                                                                    <tr data-price="0" data-index="${currentIndex}">
+                                                                        <td>
+                                                                            <select name="products[${currentIndex}][service_id]"
+                                                                                    class="form-control service-select" required>
+                                                                                <option value="">Seleccione servicio</option>
+                                                                                ${services.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                                                            </select>
+                                                                            <input type="hidden" name="products[${currentIndex}][type]" value="SERVICE">
+                                                                            <input type="hidden" class="unit-price-input"
+                                                                                name="products[${currentIndex}][price]" value="0">
+                                                                            <input type="hidden" class="subtotal-input"
+                                                                                name="products[${currentIndex}][subtotal]" value="0">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" name="products[${currentIndex}][cantidad]"
+                                                                                class="form-control cantidadservice" value="1" min="1">
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" step="0.01" class="form-control service-price"
+                                                                                placeholder="Precio" value="0" required>
+                                                                        </td>
+                                                                        <td class="subtotal">$0.00</td>
+                                                                        <td class="subtotal_bs">Bs0.00</td>
+                                                                        <td class="subtotal_usd">$0.00</td>
+                                                                        <td>
+                                                                            <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                `;
 
             $('#services-table tbody').append(row);
             rowIndex++;

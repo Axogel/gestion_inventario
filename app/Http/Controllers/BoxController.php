@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Box;
 use App\Http\Controllers\Controller;
+use App\Models\Divisa;
 use App\Models\Expense;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -49,6 +50,7 @@ class BoxController extends Controller
     public function create()
     {
         $today = date('Y-m-d');
+        $divisas = Divisa::all()->keyBy('name');
 
         $payments = Payment::whereDate('created_at', $today)->get();
         $actuallyBox = Box::whereDate('date', $today)->first();
@@ -57,39 +59,65 @@ class BoxController extends Controller
         $totalCollected = $payments->sum('monto_base');
 
         // Total gastos
-        $totalExpenses = Expense::whereDate('fecha', $today)->sum('monto');
+        $expenses = Expense::whereDate('fecha', $today)->get();
 
+
+        // 🔥 AGRUPACIÓN POR MONEDA Y MÉTODO
+        $paymentsGrouped = $payments->flatMap(function ($payment) {
+            // 1. Dividimos el string por el símbolo "+" y limpiamos espacios
+            $methods = explode('+', $payment->metodo_pago);
+
+            // Si tus pagos múltiples guardan el desglose en otra tabla, deberías iterar esa.
+            // Pero si solo tienes el string y el monto total, aquí lo tratamos:
+            return array_map(function ($method) use ($payment) {
+                return [
+                    'metodo_pago' => trim($method),
+                    'moneda' => $payment->moneda,
+                    'monto' => $payment->monto_original, // Ojo: si es combinado, ¿cómo divides el monto?
+                ];
+            }, $methods);
+        })
+            ->groupBy('metodo_pago')
+            ->map(function ($methodGroup) {
+                return $methodGroup->groupBy('moneda')->map(function ($currencyGroup) {
+                    return [
+                        'total' => $currencyGroup->sum('monto'),
+                        'count' => $currencyGroup->count(),
+                    ];
+                });
+            });
+        $expensesGrouped = $expenses->flatMap(function ($expense) {
+            $methods = explode('+', $expense->metodo_pago);
+
+            return array_map(function ($method) use ($expense) {
+                return [
+                    'metodo_pago' => trim($method),
+                    'moneda' => $expense->moneda,
+                    'monto' => $expense->monto,
+                ];
+            }, $methods);
+        })
+            ->groupBy('metodo_pago')
+            ->map(function ($methodGroup) {
+                return $methodGroup->groupBy('moneda')->map(function ($currencyGroup) {
+                    return [
+                        'total' => $currencyGroup->sum('monto'),
+                        'count' => $currencyGroup->count(),
+                    ];
+                });
+            });
+        $totalExpenses = 0;
+
+        foreach ($expensesGrouped as $methodGroup) {
+            foreach ($methodGroup as $currency => $data) {
+                $tasa = $divisas[$currency]->tasa ?? 1;
+                $totalExpenses += $data['total'] * $tasa;
+            }
+        }
         // Neto en caja
         $netTotal = ($actuallyBox ? $actuallyBox->init : 0)
             + $totalCollected
             - $totalExpenses;
-
-        // 🔥 AGRUPACIÓN POR MONEDA Y MÉTODO
-        $paymentsGrouped = $payments
-            ->groupBy('metodo_pago')
-            ->map(function ($methodGroup) {
-                return $methodGroup
-                    ->groupBy('moneda')
-                    ->map(function ($currencyGroup) {
-                        return [
-                            'total' => $currencyGroup->sum('monto_original'),
-                            'count' => $currencyGroup->count(),
-                        ];
-                    });
-            });
-        $expensesGrouped = Expense::whereDate('fecha', $today)
-            ->get()
-            ->groupBy('metodo_pago')
-            ->map(function ($methodGroup) {
-                return $methodGroup
-                    ->groupBy('moneda')
-                    ->map(function ($currencyGroup) {
-                        return [
-                            'total' => $currencyGroup->sum('monto'),
-                            'count' => $currencyGroup->count(),
-                        ];
-                    });
-            });
 
         return view('box.today', compact(
             'payments',

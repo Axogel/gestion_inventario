@@ -137,11 +137,36 @@
                 <div class="modal-header">
                     <h5 class="modal-title">Cerrar Caja del Día</h5>
                 </div>
-                <div class="modal-body">
-                    <label>Monto Final Real en Efectivo/Caja:</label>
-                    <input type="number" name="final" class="form-control" required>
-                    <small class="text-muted">Ingresa el total que tienes físicamente para comparar con el sistema.</small>
+      <div class="modal-body">
+
+    <h6 class="mb-2">Resumen del sistema (por método)</h6>
+
+    @foreach($paymentsGrouped as $method => $currencies)
+        <div class="border rounded p-2 mb-2">
+            <strong>{{ $method }}</strong>
+
+            @foreach($currencies as $currency => $data)
+                <div class="d-flex justify-content-between ps-3">
+                    <span>{{ $currency }} ({{ $data['count'] }})</span>
+                    <span>
+                        {{ number_format($data['total'], 2) }}
+                    </span>
                 </div>
+            @endforeach
+        </div>
+    @endforeach
+
+    <hr>
+
+    <label class="fw-bold">Monto real contado en EFECTIVO:</label>
+    <input type="number" name="final" class="form-control" required>
+
+    <small class="text-muted">
+        Ingresa solo lo contado físicamente en caja (efectivo).
+        El sistema comparará contra lo esperado.
+    </small>
+</div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-danger">Confirmar Cierre</button>
