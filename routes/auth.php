@@ -45,7 +45,7 @@ Route::middleware([Authenticate::class])->group(function () {
     Route::resource('services', ServicesController::class);
     Route::get('orden/{orden}/print', [OrdenEntregaController::class, 'show'])
         ->name('orden.print');
-
+    Route::post('/orden/{id}/return', [OrdenEntregaController::class, 'processReturn'])->name('orden.return');
 
     //deudas
     Route::get('deudores', [OrdenEntregaController::class, 'deudores'])->name('deudores');

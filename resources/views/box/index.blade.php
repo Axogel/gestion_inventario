@@ -15,9 +15,14 @@
                             <tr>
                                 <th>Fecha</th>
                                 <th>Monto Inicial</th>
-                                <th>Monto Final</th>
+                                <th>EFECTIVO (COP)</th>
+                                <th>EFECTIVO (USD)</th>
+                                <th>PUNTO</th>
+                                <th>PAGO MOVIL</th>
+                                <th>BANCOLOMBIA</th>
+                                <th>TRASNFERENCIA (BS)</th>
+
                                 <th>Estado</th>
-                                <th>Diferencia</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -33,33 +38,29 @@
                                         @endif
                                     </td>
                                     <td>
+                                        ${{ number_format($box->final_usd, 2) }}
+                                    </td>
+                                    <td>
+                                        ${{ number_format($box->final_bs_punto, 2) }}
+                                    </td>
+                                    <td>
+                                        ${{ number_format($box->final_bs_pagom, 2) }}
+                                    </td>
+                                    <td>
+                                        ${{ number_format($box->final_cop_banco, 2) }}
+                                    </td>
+                                    <td>
+                                        ${{ number_format($box->final_bs_transfer, 2) }}
+                                    </td>
+                                    <td>
                                         @if($box->status == 'open')
                                             <span class="badge bg-success">Abierta</span>
                                         @else
                                             <span class="badge bg-secondary">Cerrada</span>
                                         @endif
                                     </td>
-                                    <td>
-                                        @if($box->status == 'closed')
-                                            @php
-                                                // Esto es un cálculo rápido, lo ideal es tener 'difference' en la DB
-                                                // Aquí asumo que quieres ver la diferencia respecto a lo que se guardó
-                                                // Para un reporte real, deberías sumar los pagos de ese día específico
-                                                $diff = $box->difference ?? 0; 
-                                            @endphp
+                  
 
-                                            @if($diff > 0)
-                                                <span class="text-success font-weight-bold">+${{ number_format($diff, 2) }}</span>
-                                            @elseif($diff < 0)
-                                                <span class="text-danger font-weight-bold">-${{ number_format(abs($diff), 2) }}</span>
-                                            @else
-                                                <span class="text-muted">$0.00</span>
-                                            @endif
-                                        @else
-                                            ---
-                                        @endif
-                                    </td>
-                   
                                 </tr>
                             @endforeach
                         </tbody>

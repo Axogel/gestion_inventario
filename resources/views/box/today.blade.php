@@ -6,6 +6,18 @@
             <h4 class="page-title">Control de Caja - {{ date('d-m-Y') }}</h4>
         </div>
 
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('warning'))
+            <div class="alert alert-warning">
+                {{ session('warning') }}
+            </div>
+        @endif
+
         {{-- CASO 1: NO EXISTE CAJA DE HOY --}}
         @if(!$actuallyBox)
             <div class="card border-primary">
@@ -137,35 +149,59 @@
                 <div class="modal-header">
                     <h5 class="modal-title">Cerrar Caja del Día</h5>
                 </div>
-      <div class="modal-body">
+                <div class="modal-body">
 
-    <h6 class="mb-2">Resumen del sistema (por método)</h6>
+                    <h6 class="mb-2">Resumen del sistema (por método)Ingresos</h6>
 
-    @foreach($paymentsGrouped as $method => $currencies)
-        <div class="border rounded p-2 mb-2">
-            <strong>{{ $method }}</strong>
+                    @foreach($paymentsGrouped as $method => $currencies)
+                        <div class="border rounded p-2 mb-2">
+                            <strong>{{ $method }}</strong>
 
-            @foreach($currencies as $currency => $data)
-                <div class="d-flex justify-content-between ps-3">
-                    <span>{{ $currency }} ({{ $data['count'] }})</span>
-                    <span>
-                        {{ number_format($data['total'], 2) }}
-                    </span>
+                            @foreach($currencies as $currency => $data)
+                                <div class="d-flex justify-content-between ps-3">
+                                    <span>{{ $currency }} ({{ $data['count'] }})</span>
+                                    <span>
+                                        {{ number_format($data['total'], 2) }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
+                    <h5 class="text-danger mt-3">Gastos</h5>
+                    @foreach($expensesGrouped as $currency => $methods)
+                        <h6 class="mt-2">{{ $currency }}</h6>
+                        @foreach($methods as $method => $data)
+                            <div class="d-flex justify-content-between">
+                                <span>{{ $method }} ({{ $data['count'] }})</span>
+                                <strong class="text-danger">
+                                    -${{ number_format($data['total'], 2) }}
+                                </strong>
+                            </div>
+                        @endforeach
+                        <hr>
+                    @endforeach
+
+                    <hr>
+
+                    <label class="fw-bold">Monto real contado en EFECTIVO (COP):</label>
+                    <input type="decimal" name="final" class="form-control" required>
+
+                    <label class="fw-bold">Monto real contado en EFECTIVO (USD):</label>
+                    <input type="decimal" name="final_usd" class="form-control" required>
+                    <label class="fw-bold">Monto real contado en PUNTO (BS):</label>
+                    <input type="decimal" name="final_bs_punto" class="form-control" required>
+                    <label class="fw-bold">Monto real contado en TRANSFER (BS):</label>
+                    <input type="decimal" name="final_bs_transfer" class="form-control" required>
+                    <label class="fw-bold">Monto real contado en PAGOMOVIL (BS):</label>
+                    <input type="decimal" name="final_bs_pagom" class="form-control" required>
+                    <label class="fw-bold">Monto real contado en Bancolombia Transferencia (COP):</label>
+                    <input type="decimal" name="final_cop_banco" class="form-control" required>
+
+                    <small class="text-muted">
+                        Ingresa solo lo contado físicamente en caja (efectivo).
+                        El sistema comparará contra lo esperado.
+                    </small>
                 </div>
-            @endforeach
-        </div>
-    @endforeach
-
-    <hr>
-
-    <label class="fw-bold">Monto real contado en EFECTIVO:</label>
-    <input type="number" name="final" class="form-control" required>
-
-    <small class="text-muted">
-        Ingresa solo lo contado físicamente en caja (efectivo).
-        El sistema comparará contra lo esperado.
-    </small>
-</div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -188,61 +224,61 @@
                     if (type === 'income') {
                         modalTitle.innerText = 'Detalle de Ingresos';
                         modalBody.innerHTML = `
-                        <p><strong>Total Ingresos:</strong> ${{ number_format($totalCollected, 2) }}</p>
-                        <hr>
-                        @foreach($paymentsGrouped as $currency => $methods)
-                            <h6>{{ $currency }}</h6>
-                            @foreach($methods as $method => $data)
-                                <div class="d-flex justify-content-between">
-                                    <span>{{ $method }}</span>
-                                    <strong>${{ number_format($data['total'], 2) }}</strong>
-                                </div>
-                            @endforeach
-                            <hr>
-                        @endforeach
-                    `;
+                                                <p><strong>Total Ingresos:</strong> ${{ number_format($totalCollected, 2) }}</p>
+                                                <hr>
+                                                @foreach($paymentsGrouped as $currency => $methods)
+                                                    <h6>{{ $currency }}</h6>
+                                                    @foreach($methods as $method => $data)
+                                                        <div class="d-flex justify-content-between">
+                                                            <span>{{ $method }}</span>
+                                                            <strong>${{ number_format($data['total'], 2) }}</strong>
+                                                        </div>
+                                                    @endforeach
+                                                    <hr>
+                                                @endforeach
+                                            `;
                     }
 
                     if (type === 'expense') {
                         modalTitle.innerText = 'Detalle de Gastos';
                         modalBody.innerHTML = `
-                        <p><strong>Total Gastos:</strong> -${{ number_format($totalExpenses, 2) }}</p>
-                    `;
+                                                <p><strong>Total Gastos:</strong> -${{ number_format($totalExpenses, 2) }}</p>
+                                            `;
                     }
 
-  if (type === 'net') {
-    modalTitle.innerText = 'Resumen por Moneda y Método';
+                    if (type === 'net') {
+                        modalTitle.innerText = 'Resumen por Moneda y Método';
 
-    modalBody.innerHTML = `
-        <h5 class="text-success">Ingresos</h5>
-        @foreach($paymentsGrouped as $currency => $methods)
-            <h6 class="mt-2">{{ $currency }}</h6>
-            @foreach($methods as $method => $data)
-                <div class="d-flex justify-content-between">
-                    <span>{{ $method }} ({{ $data['count'] }})</span>
-                    <strong class="text-success">
-                        ${{ number_format($data['total'], 2) }}
-                    </strong>
-                </div>
-            @endforeach
-            <hr>
-        @endforeach
+                        modalBody.innerHTML = `
+                                <h5 class="text-success">Ingresos</h5>
+                                @foreach($paymentsGrouped as $currency => $methods)
+                                    <h6 class="mt-2">{{ $currency }}</h6>
+                                    @foreach($methods as $method => $data)
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ $method }} ({{ $data['count'] }})</span>
+                                            <strong class="text-success">
+                                                ${{ number_format($data['total'], 2) }}
+                                            </strong>
+                                        </div>
+                                    @endforeach
+                                    <hr>
+                                @endforeach
 
-        <h5 class="text-danger mt-3">Gastos</h5>
-        @foreach($expensesGrouped as $currency => $methods)
-            <h6 class="mt-2">{{ $currency }}</h6>
-            @foreach($methods as $method => $data)
-                <div class="d-flex justify-content-between">
-                    <span>{{ $method }} ({{ $data['count'] }})</span>
-                    <strong class="text-danger">
-                        -${{ number_format($data['total'], 2) }}
-                    </strong>
-                </div>
-            @endforeach
-            <hr>
-        @endforeach
-    `;
-}
+                                <h5 class="text-danger mt-3">Gastos</h5>
+                                @foreach($expensesGrouped as $currency => $methods)
+                                    <h6 class="mt-2">{{ $currency }}</h6>
+                                    @foreach($methods as $method => $data)
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ $method }} ({{ $data['count'] }})</span>
+                                            <strong class="text-danger">
+                                                -${{ number_format($data['total'], 2) }}
+                                            </strong>
+                                        </div>
+                                    @endforeach
+                                    <hr>
+                                @endforeach
+                            `;
+                    }
 
                 });
             });

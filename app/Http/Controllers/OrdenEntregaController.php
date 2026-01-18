@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ReturnOrderRequest;
 use App\Models\Box;
 use App\Models\Cliente;
 use App\Models\Divisa;
+use App\Models\Expense;
 use App\Models\Fecha;
 use App\Models\Inventario;
 use App\Models\LibroDiario;
@@ -38,7 +40,10 @@ class OrdenEntregaController extends Controller
             Carbon::parse($hasta)->endOfDay()
         ])->orderBy('created_at', 'desc')->get();
 
-        return view('orden.index', compact('ordenes', 'desde', 'hasta'));
+
+        $products = Inventario::all();
+        $divisas = Divisa::all();
+        return view('orden.index', compact('ordenes', 'desde', 'hasta', 'products', 'divisas'));
     }
 
     public function today()
@@ -116,33 +121,40 @@ class OrdenEntregaController extends Controller
             'orden.cliente'
         ])
             ->where('type', 'debt')
+            ->where('method', '=', 'DEUDA')
             ->get();
 
-        return view('orden.deudores', compact('orderFiadas'));
+        $divisas = Divisa::all();
+
+        return view('orden.deudores', compact('orderFiadas', 'divisas'));
     }
 
-    public function paidDebit($id)
+    public function paidDebit($id, Request $request)
     {
-        $pago = OrdenPagos::findOrFail($id);
-
+        // Usamos round($val, 2) para asegurar que no viajen decimales "sucios"
+        $montoFinal = round($request->amount, 2);
+        $tasaFinal = round($request->exchange_rate, 2);
+        $pago = OrdenPagos::find($id);
         $pago->type = 'sale';
-        $pago->method = 'EFECTIVO';
+        $pago->method = $request->method;
+        $pago->currency = $request->currency;
+        $pago->amount = $montoFinal;
+        $pago->exchange_rate = $tasaFinal;
+        // El amount_base lo recalculamos para que la suma sea exacta en COP
+        $pago->amount_base = round($montoFinal / $tasaFinal, 2);
         $pago->save();
 
-        $payment = Payment::create([
+        Payment::create([
             'orden_id' => $pago->orden_id,
-            'metodo_pago' => 'EFECTIVO',
-            'monto_base' => $pago->amount,
-            'tasa_cambio' => $pago->exchange_rate,
+            'metodo_pago' => $request->method,
+            'monto_base' => $pago->amount_base,
+            'tasa_cambio' => $tasaFinal,
             'moneda' => $pago->currency,
-            'monto_original' => $pago->amount,
+            'monto_original' => $montoFinal,
         ]);
 
-        return redirect()
-            ->route('deudores')
-            ->with('success', 'Deuda marcada como pagada');
+        return redirect()->route('deudores')->with('success', 'Deuda liquidada correctamente.');
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -324,7 +336,254 @@ class OrdenEntregaController extends Controller
      */
     public function edit(ordenEntrega $ordenEntrega)
     {
-        //
+
+    }
+    public function processReturn(ReturnOrderRequest $request, $id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $orden = ordenEntrega::with(['items', 'pagos'])->lockForUpdate()->findOrFail($id);
+            $accion = $request->accion;
+
+            // 1️⃣ PROCESAR ITEMS DEVUELTOS
+            $this->processReturnedItems($request->items_devolucion, $orden);
+
+            // 2️⃣ SEGÚN LA ACCIÓN
+            if ($accion === 'refund') {
+                $this->processRefund($orden, $request);
+            } elseif ($accion === 'change') {
+                $result = $this->processChange($orden, $request);
+            }
+
+            // 3️⃣ ACTUALIZAR ORDEN ORIGINAL
+
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $accion === 'refund'
+                    ? 'Devolución procesada correctamente. Dinero reembolsado.'
+                    : 'Cambio procesado correctamente. Nueva orden generada.',
+                'data' => $result ?? null
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al procesar devolución: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Procesar items devueltos (reintegrar stock)
+     */
+    private function processReturnedItems(array $items, $orden)
+    {
+        foreach ($items as $itemData) {
+            $item = OrdenEntregaProducto::where('orden_id', $orden->id)
+                ->where('product_id', $itemData['product_id'])
+                ->where('type', 'PRODUCT')
+                ->firstOrFail();
+
+            // Solo productos manejan stock
+            if ($item->type === 'PRODUCT' && $item->product_id) {
+                $producto = Inventario::lockForUpdate()->findOrFail($item->product_id);
+
+                // Reintegrar stock
+                $producto->increment('stock', $itemData['cantidad']);
+
+                // Registrar movimiento
+                movementInventory::create([
+                    'product_id' => $producto->id,
+                    'quantity' => $itemData['cantidad'],
+                    'type' => 'input',
+                    'reason' => 'DEVOLUCION',
+                    'description' => "Devolución de orden #{$item->orden_id}",
+                    'balance_after' => $producto->stock,
+                ]);
+            }
+
+            // Marcar item como devuelto (opcional: agregar campo `returned_at`)
+
+            // En lugar de $item->delete(); usa:
+            OrdenEntregaProducto::where('orden_id', $orden->id)
+                ->where('product_id', $itemData['product_id'])
+                ->where('type', 'PRODUCT')
+                ->delete();
+        }
+    }
+
+    /**
+     * Procesar reembolso de dinero
+     */
+    private function processRefund(ordenEntrega $orden, ReturnOrderRequest $request)
+    {
+        $metodo = $request->metodo_devolucion;
+        $monto = $request->total_devolucion;
+
+        // Obtener divisa según método
+        $divisa = $this->getDivisaForMethod($metodo);
+        $montoEnDivisa = $monto / $divisa->tasa;
+
+        // Registrar pago negativo (salida de caja)
+        OrdenPagos::create([
+            'orden_id' => $orden->id,
+            'method' => $metodo,
+            'currency' => $divisa->name,
+            'amount' => -$montoEnDivisa, // Negativo = salida
+            'amount_base' => -$monto,
+            'type' => 'debt',
+            'exchange_rate' => $divisa->tasa,
+        ]);
+
+        // También en Payment (si lo usas para caja)
+
+        Expense::create([
+            'descripcion' => 'Devolucion de orden #' . $orden->id,
+            'monto' => $montoEnDivisa,
+            'moneda' => $divisa->name,
+            'categoria' => 'Devolucion',
+            'exchange_rate' => $divisa->tasa,
+            'fecha' => now(),
+        ]);
+
+        $orden->subtotal -= $monto;
+        $orden->save();
+        // Payment::create([
+        //     'orden_id' => $orden->id,
+        //     'method' => $metodo,
+        //     'currency' => $divisa->name,
+        //     'amount' => -$montoEnDivisa,
+        //     'amount_base' => -$monto,
+        //     'type' => 'debiit',
+        // ]);
+    }
+
+    /**
+     * Procesar cambio por otros productos
+     */
+    private function processChange(ordenEntrega $orden, ReturnOrderRequest $request)
+    {
+        // 1. Procesar productos nuevos (descontar stock)
+        $itemsNuevos = [];
+        foreach ($request->productos_cambio as $productoCambio) {
+            $producto = Inventario::lockForUpdate()->findOrFail($productoCambio['id']);
+
+            // Validar stock
+            if ($producto->stock < $productoCambio['cantidad']) {
+                throw new \Exception("Stock insuficiente para {$producto->producto}");
+            }
+
+            // Descontar stock
+            $producto->decrement('stock', $productoCambio['cantidad']);
+
+            // Registrar movimiento
+            movementInventory::create([
+                'product_id' => $producto->id,
+                'quantity' => $productoCambio['cantidad'],
+                'type' => 'output',
+                'reason' => 'CAMBIO',
+                'description' => "Cambio de orden #{$orden->id}",
+                'balance_after' => $producto->stock,
+            ]);
+
+            $itemsNuevos[] = [
+                'product_id' => $producto->id,
+                'type' => 'PRODUCT',
+                'cantidad' => $productoCambio['cantidad'],
+                'precio' => $productoCambio['precio'],
+                'subtotal' => $productoCambio['precio'] * $productoCambio['cantidad'],
+            ];
+        }
+
+        // 2. Manejar diferencia de precio
+        $diferencia = $request->diferencia ?? 0;
+
+        if ($diferencia != 0) {
+            $metodo = $request->metodo_pago_diferencia;
+            $divisa = $this->getDivisaForMethod($metodo);
+            $montoEnDivisa = abs($diferencia) / $divisa->tasa;
+
+            if ($diferencia > 0) {
+                // Cliente recibe dinero (sobró)
+                OrdenPagos::create([
+                    'orden_id' => $orden->id,
+                    'method' => $metodo,
+                    'currency' => $divisa->name,
+                    'amount' => -$montoEnDivisa,
+                    'amount_base' => -abs($diferencia),
+                    'type' => 'debt',
+                    'exchange_rate' => $divisa->tasa,
+                ]);
+                Expense::create([
+                    'descripcion' => 'Devolucion de orden #' . $orden->id,
+                    'monto' => $montoEnDivisa,
+                    'moneda' => $divisa->name,
+                    'categoria' => 'Devolucion',
+                    'fecha' => now(),
+                ]);
+            } else {
+                // Cliente paga más (faltó)
+                OrdenPagos::create([
+                    'orden_id' => $orden->id,
+                    'method' => $metodo,
+                    'currency' => $divisa->name,
+                    'amount' => $montoEnDivisa,
+                    'amount_base' => abs($diferencia),
+                    'type' => 'sale',
+                    'exchange_rate' => $divisa->tasa,
+
+                ]);
+                Payment::create([
+                    'orden_id' => $orden->id,
+                    'metodo_pago' => $metodo,
+                    'moneda' => $divisa->name,
+                    'monto_original' => $montoEnDivisa,
+                    'monto_base' => abs($diferencia),
+                    'tasa_cambio' => $divisa->tasa,
+                ]);
+
+            }
+        }
+
+        $orden->update([
+            'subtotal' => $request->total_cambio - abs($diferencia < 0 ? 0 : $diferencia),
+        ]);
+
+        // 3. Crear nueva orden para el cambio (opcional pero recomendado)
+        // $nuevaOrden = ordenEntrega::create([
+        //     'cliente_id' => $orden->cliente_id ?? null,
+        //     'subtotal' => $request->total_cambio - abs($diferencia < 0 ? 0 : $diferencia),
+        // ]);
+
+        foreach ($itemsNuevos as $item) {
+            $orden->items()->create($item);
+        }
+
+        return ['nueva_orden_id' => $orden->id];
+    }
+
+    /**
+     * Obtener divisa según método de pago
+     */
+    private function getDivisaForMethod($metodo)
+    {
+        $mapDivisas = [
+            'EFECTIVO' => 'COP',
+            'TRANSFERENCIACOP' => 'COP',
+            'TRANSFERENCIA' => 'Bs',
+            'PAGOMOVIL' => 'Bs',
+            'EFECTIVOUSD' => 'USD',
+        ];
+
+        $nombreDivisa = $mapDivisas[$metodo] ?? 'COP';
+
+        return Divisa::where('name', $nombreDivisa)->firstOrFail();
     }
 
     /**

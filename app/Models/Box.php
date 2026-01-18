@@ -12,6 +12,11 @@ class Box extends Model
     protected $fillable = [
         'init',
         'final',
+        'final_bs_punto',
+        'final_bs_transfer',
+        'final_bs_pagom',
+        'final_cop_banco',
+        'final_usd',
         'date',
         'status'
     ];
