@@ -398,7 +398,12 @@ $('.btn-devolucion').on('click', function () {
     $('#modalDevolucion').modal('show');
 });
 
-
+$(document).ready(function() {
+    // Forzar cierre al hacer clic en cualquier elemento con data-dismiss="modal"
+    $('[data-dismiss="modal"]').on('click', function() {
+        $('#modalDevolucion').modal('hide');
+    });
+});
 
 
 $(document).on('click', '.product-item-cambio', function () {
