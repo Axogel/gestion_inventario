@@ -161,12 +161,13 @@ class OrdenEntregaController extends Controller
      */
     public function store(Request $request)
     {
+
         $request->validate([
             'client_id' => 'nullable|exists:clientes,id',
 
             'products' => 'required|array|min:1',
             'products.*.type' => 'required|in:PRODUCT,SERVICE',
-            'products.*.product_id' => 'nullable|exists:inventarios,id',
+            'products.*.product_id' => 'nullable|integer',
             'products.*.cantidad' => 'required|integer|min:1',
 
             'payments' => 'nullable|array',
@@ -195,12 +196,24 @@ class OrdenEntregaController extends Controller
 
                 $subtotal = 0;
 
+                $inventoryIds = collect($request->products)
+                    ->where('type', 'PRODUCT')
+                    ->pluck('product_id')
+                    ->unique()
+                    ->values();
+
+                $inventarios = Inventario::whereIn('id', $inventoryIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+                $itemsInsert = [];
+
+
                 foreach ($request->products as $item) {
 
                     if ($item['type'] === 'PRODUCT') {
 
-                        $producto = Inventario::lockForUpdate()
-                            ->findOrFail($item['product_id']);
+                        $producto = $inventarios[$item['product_id']];
 
                         if ($producto->stock < $item['cantidad']) {
                             throw new \Exception(
@@ -215,21 +228,25 @@ class OrdenEntregaController extends Controller
                     }
 
                     $subtotal += $lineSubtotal;
-                    OrdenEntregaProducto::create([
+                    $itemsInsert[] = [
                         'orden_id' => $orden->id,
                         'type' => $item['type'],
                         'product_id' => $item['product_id'] ?? null,
                         'cantidad' => $item['cantidad'],
                         'subtotal' => $lineSubtotal,
                         'service_id' => $item['service_id'] ?? null,
-                    ]);
+                    ];
                 }
+                OrdenEntregaProducto::insert($itemsInsert);
 
-                $orden->update(['subtotal' => $subtotal]);
+                // $orden->update(['subtotal' => $subtotal]); test
+                $orden->subtotal = $subtotal;
+                $orden->save();
 
 
                 $totalPagadoBase = 0;
                 $metodos = [];
+                $pagosInsert = [];
 
                 if ($request->filled('payments')) {
                     foreach ($request->payments as $pago) {
@@ -238,7 +255,7 @@ class OrdenEntregaController extends Controller
                         $totalPagadoBase += $amountBase;
                         $metodos[] = $pago['method'];
 
-                        OrdenPagos::create([
+                        $pagosInsert[] = [
                             'orden_id' => $orden->id,
                             'method' => $pago['method'],
                             'currency' => $pago['currency'],
@@ -246,9 +263,10 @@ class OrdenEntregaController extends Controller
                             'exchange_rate' => $pago['exchange_rate'],
                             'amount_base' => $amountBase,
                             'type' => 'sale',
-                        ]);
+                        ];
                     }
                 }
+
                 $tolerance = 0.10;
                 $difference = $totalPagadoBase - $subtotal;
 
@@ -262,9 +280,12 @@ class OrdenEntregaController extends Controller
                         '❌ Para dejar una orden fiada debes seleccionar o registrar un cliente'
                     );
                 }
+
+
+                $paymentsItem = [];
                 if ($totalPagadoBase < $subtotal) {
 
-                    OrdenPagos::create([
+                    $pagosInsert[] = [
                         'orden_id' => $orden->id,
                         'method' => 'DEUDA',
                         'currency' => 'COP',
@@ -272,9 +293,9 @@ class OrdenEntregaController extends Controller
                         'exchange_rate' => 1,
                         'amount_base' => $subtotal,
                         'type' => 'debt',
-                    ]);
+                    ];
 
-                    Payment::create([
+                    $paymentsItem[] = [
                         'orden_id' => $orden->id,
                         'moneda' => 'COP',
                         'monto_original' => $totalPagadoBase,
@@ -282,10 +303,10 @@ class OrdenEntregaController extends Controller
                         'monto_base' => $totalPagadoBase,
                         'metodo_pago' => implode(' + ', array_unique($metodos)),
                         'referencia' => null,
-                    ]);
+                    ];
 
                 } else {
-                    Payment::create([
+                    $paymentsItem[] = [
                         'orden_id' => $orden->id,
                         'moneda' => $pago['currency'],
                         'monto_original' => $subtotal / $pago['exchange_rate'],
@@ -293,8 +314,10 @@ class OrdenEntregaController extends Controller
                         'monto_base' => $subtotal,
                         'metodo_pago' => implode(' + ', array_unique($metodos)),
                         'referencia' => null,
-                    ]);
+                    ];
                 }
+                Payment::insert($paymentsItem);
+                OrdenPagos::insert($pagosInsert);
 
             });
 
@@ -307,6 +330,8 @@ class OrdenEntregaController extends Controller
                 ->withInput()
                 ->withErrors(['error' => $e->getMessage()]);
         }
+
+
     }
 
 
