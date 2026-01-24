@@ -231,35 +231,35 @@
         // ========================================
         $('#add-payment').on('click', function () {
             let row = `
-                                                                                                                                    <tr>
-                                                                                                                                        <td>
-                                                                                                                                            <select name="payments[${paymentIndex}][method]" class="form-control">
-                                                                                                                                                <option value="EFECTIVO">Efectivo</option>
-                                                                                                                                                <option value="TRANSFERENCIA">Transferencia</option>
-                                                                                                                                                <option value="PAGO_MOVIL">Pago móvil</option>
-                                                                                                                                                <option value="PUNTO">Punto</option>
-                                                                                                                                            </select>
-                                                                                                                                        </td>
-                                                                                                                                        <td>
-                                                                                                                                            <select name="payments[${paymentIndex}][currency]" 
-                                                                                                                                                    class="form-control currency-select">
-                                                                                                                                                ${Object.keys(divisas).map(c => `<option value="${c}">${c}</option>`).join('')}
-                                                                                                                                            </select>
-                                                                                                                                        </td>
-                                                                                                                                        <td>
-                                                                                                                                            <input type="number" step="0.01" name="payments[${paymentIndex}][amount]"
-                                                                                                                                                class="form-control payment-amount" value="0">
-                                                                                                                                        </td>
-                                                                                                                                        <td>
-                                                                                                                                            <input type="number" step="0.0001" name="payments[${paymentIndex}][exchange_rate]"
-                                                                                                                                                class="form-control exchange-rate" value="1">
-                                                                                                                                        </td>
-                                                                                                                                        <td class="payment-base">0.00</td>
-                                                                                                                                        <td>
-                                                                                                                                            <button type="button" class="btn btn-danger btn-sm remove-payment">X</button>
-                                                                                                                                        </td>
-                                                                                                                                    </tr>
-                                                                                                                                `;
+                                                                                                                                                        <tr>
+                                                                                                                                                            <td>
+                                                                                                                                                                <select name="payments[${paymentIndex}][method]" class="form-control">
+                                                                                                                                                                    <option value="EFECTIVO">Efectivo</option>
+                                                                                                                                                                    <option value="TRANSFERENCIA">Transferencia</option>
+                                                                                                                                                                    <option value="PAGO_MOVIL">Pago móvil</option>
+                                                                                                                                                                    <option value="PUNTO">Punto</option>
+                                                                                                                                                                </select>
+                                                                                                                                                            </td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <select name="payments[${paymentIndex}][currency]" 
+                                                                                                                                                                        class="form-control currency-select">
+                                                                                                                                                                    ${Object.keys(divisas).map(c => `<option value="${c}">${c}</option>`).join('')}
+                                                                                                                                                                </select>
+                                                                                                                                                            </td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <input type="number" step="0.01" name="payments[${paymentIndex}][amount]"
+                                                                                                                                                                    class="form-control payment-amount" value="0">
+                                                                                                                                                            </td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <input type="number" step="0.0001" name="payments[${paymentIndex}][exchange_rate]"
+                                                                                                                                                                    class="form-control exchange-rate" value="1">
+                                                                                                                                                            </td>
+                                                                                                                                                            <td class="payment-base">0.00</td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <button type="button" class="btn btn-danger btn-sm remove-payment">X</button>
+                                                                                                                                                            </td>
+                                                                                                                                                        </tr>
+                                                                                                                                                    `;
             $('#payments-table tbody').append(row);
             paymentIndex++;
         });
@@ -341,14 +341,14 @@
 
             matches.slice(0, 10).forEach(p => {
                 resultsBox.append(`
-                                                                                                                                        <button type="button" class="list-group-item list-group-item-action product-item"
-                                                                                                                                                data-id="${p.id}">
-                                                                                                                                            <strong>ID ${p.id}</strong>
+                                                                                                                                                            <button type="button" class="list-group-item list-group-item-action product-item"
+                                                                                                                                                                    data-id="${p.id}">
+                                                                                                                                                                <strong>ID ${p.id}</strong>
 
-                                                                                                                                            - ${p.producto} x(${p.stock})
-                                                                                                                                            <span class="float-end">$${Number(p.precio).toFixed(2)}</span>
-                                                                                                                                        </button>
-                                                                                                                                    `);
+                                                                                                                                                                - ${p.producto} x(${p.stock})
+                                                                                                                                                                <span class="float-end">$${Number(p.precio).toFixed(2)}</span>
+                                                                                                                                                            </button>
+                                                                                                                                                        `);
             });
 
             resultsBox.show();
@@ -404,31 +404,31 @@
 
             let currentIndex = rowIndex;
             let row = `
-                                                                                                                                    <tr data-price="${product.precio}" data-index="${currentIndex}">
-                                                                                                                                        <td>
-                                                                                                                                            <input type="hidden" class="product-id"
-                                                                                                                                                name="products[${currentIndex}][product_id]" value="${product.id}">
-                                                                                                                                            <input type="hidden" name="products[${currentIndex}][type]" value="PRODUCT">
-                                                                                                                                            <input type="hidden" name="products[${currentIndex}][unit_price]" value="${product.precio}">
-                                                                                                                                            <input type="hidden" class="subtotal-input"
-                                                                                                                                                name="products[${currentIndex}][subtotal]" value="${product.precio}">
-                                                                                                                                            <strong>${product.id}</strong>
-                                                                                                                                            ${product.codigo ? ` - ${product.codigo}` : ''}
-                                                                                                                                            - ${product.producto}
-                                                                                                                                        </td>
-                                                                                                                                        <td>
-                                                                                                                                            <input type="number" name="products[${currentIndex}][cantidad]"
-                                                                                                                                                class="form-control cantidad" value="1" min="1" max="${product.stock}">
-                                                                                                                                        </td>
-                                                                                                                                        <td class="precio">$${product.precio.toFixed(2)}</td>
-                                                                                                                                        <td class="subtotal">$${product.precio.toFixed(2)}</td>
-                                                                                                                                        <td class="subtotal_bs">Bs${(product.precio / divisas['Bs']).toFixed(2)}</td>
-                                                                                                                                        <td class="subtotal_usd">$${(product.precio / divisas['USD']).toFixed(2)}</td>
-                                                                                                                                        <td>
-                                                                                                                                            <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
-                                                                                                                                        </td>
-                                                                                                                                    </tr>
-                                                                                                                                `;
+                                                                                                                                                        <tr data-price="${product.precio}" data-index="${currentIndex}">
+                                                                                                                                                            <td>
+                                                                                                                                                                <input type="hidden" class="product-id"
+                                                                                                                                                                    name="products[${currentIndex}][product_id]" value="${product.id}">
+                                                                                                                                                                <input type="hidden" name="products[${currentIndex}][type]" value="PRODUCT">
+                                                                                                                                                                <input type="hidden" name="products[${currentIndex}][unit_price]" value="${product.precio}">
+                                                                                                                                                                <input type="hidden" class="subtotal-input"
+                                                                                                                                                                    name="products[${currentIndex}][subtotal]" value="${product.precio}">
+                                                                                                                                                                <strong>${product.id}</strong>
+                                                                                                                                                                ${product.codigo ? ` - ${product.codigo}` : ''}
+                                                                                                                                                                - ${product.producto}
+                                                                                                                                                            </td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <input type="number" name="products[${currentIndex}][cantidad]"
+                                                                                                                                                                    class="form-control cantidad" value="1" min="1" max="${product.stock}">
+                                                                                                                                                            </td>
+                                                                                                                                                            <td class="precio">$${product.precio.toFixed(2)}</td>
+                                                                                                                                                            <td class="subtotal">$${product.precio.toFixed(2)}</td>
+                                                                                                                                                            <td class="subtotal_bs">Bs${(product.precio / divisas['Bs']).toFixed(2)}</td>
+                                                                                                                                                            <td class="subtotal_usd">$${(product.precio / divisas['USD']).toFixed(2)}</td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+                                                                                                                                                            </td>
+                                                                                                                                                        </tr>
+                                                                                                                                                    `;
 
             $('#products-table tbody').append(row);
             rowIndex++;
@@ -441,36 +441,36 @@
         $('#add-product').on('click', function () {
             let currentIndex = rowIndex;
             let row = `
-                                                                                                                                    <tr data-price="0" data-index="${currentIndex}">
-                                                                                                                                        <td>
-                                                                                                                                            <select name="products[${currentIndex}][product_id]" 
-                                                                                                                                                    class="form-control product-select" required>
-                                                                                                                                                <option value="">Seleccione</option>
-                                                                                                                                                ${products.map(p => `
-                                                                                                                                                    <option value="${p.id}" data-price="${p.precio}" data-stock="${p.stock}">
-                                                                                                                                                        ${p.producto} x(${p.stock}) stock
-                                                                                                                                                    </option>
-                                                                                                                                                `).join('')}
-                                                                                                                                            </select>
-                                                                                                                                            <input type="hidden" name="products[${currentIndex}][type]" value="PRODUCT">
-                                                                                                                                            <input type="hidden" class="unit-price-input"
-                                                                                                                                                name="products[${currentIndex}][unit_price]" value="0">
-                                                                                                                                            <input type="hidden" class="subtotal-input"
-                                                                                                                                                name="products[${currentIndex}][subtotal]" value="0">
-                                                                                                                                        </td>
-                                                                                                                                        <td>
-                                                                                                                                            <input type="number" name="products[${currentIndex}][cantidad]" 
-                                                                                                                                                class="form-control cantidad" value="1" min="1">
-                                                                                                                                        </td>
-                                                                                                                                        <td class="precio">$0.00</td>
-                                                                                                                                        <td class="subtotal">$0.00</td>
-                                                                                                                                        <td class="subtotal_bs">Bs0.00</td>
-                                                                                                                                        <td class="subtotal_usd">$0.00</td>
-                                                                                                                                        <td>
-                                                                                                                                            <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
-                                                                                                                                        </td>
-                                                                                                                                    </tr>
-                                                                                                                                `;
+                                                                                                                                                        <tr data-price="0" data-index="${currentIndex}">
+                                                                                                                                                            <td>
+                                                                                                                                                                <select name="products[${currentIndex}][product_id]" 
+                                                                                                                                                                        class="form-control product-select" required>
+                                                                                                                                                                    <option value="">Seleccione</option>
+                                                                                                                                                                    ${products.map(p => `
+                                                                                                                                                                        <option value="${p.id}" data-price="${p.precio}" data-stock="${p.stock}">
+                                                                                                                                                                            ${p.producto} x(${p.stock}) stock
+                                                                                                                                                                        </option>
+                                                                                                                                                                    `).join('')}
+                                                                                                                                                                </select>
+                                                                                                                                                                <input type="hidden" name="products[${currentIndex}][type]" value="PRODUCT">
+                                                                                                                                                                <input type="hidden" class="unit-price-input"
+                                                                                                                                                                    name="products[${currentIndex}][unit_price]" value="0">
+                                                                                                                                                                <input type="hidden" class="subtotal-input"
+                                                                                                                                                                    name="products[${currentIndex}][subtotal]" value="0">
+                                                                                                                                                            </td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <input type="number" name="products[${currentIndex}][cantidad]" 
+                                                                                                                                                                    class="form-control cantidad" value="1" min="1">
+                                                                                                                                                            </td>
+                                                                                                                                                            <td class="precio">$0.00</td>
+                                                                                                                                                            <td class="subtotal">$0.00</td>
+                                                                                                                                                            <td class="subtotal_bs">Bs0.00</td>
+                                                                                                                                                            <td class="subtotal_usd">$0.00</td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+                                                                                                                                                            </td>
+                                                                                                                                                        </tr>
+                                                                                                                                                    `;
 
             $('#products-table tbody').append(row);
             rowIndex++;
@@ -505,35 +505,35 @@
         function addServiceRow() {
             let currentIndex = rowIndex;
             let row = `
-                                                                                                                                    <tr data-price="0" data-index="${currentIndex}">
-                                                                                                                                        <td>
-                                                                                                                                            <select name="products[${currentIndex}][service_id]"
-                                                                                                                                                    class="form-control service-select" required>
-                                                                                                                                                <option value="">Seleccione servicio</option>
-                                                                                                                                                ${services.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
-                                                                                                                                            </select>
-                                                                                                                                            <input type="hidden" name="products[${currentIndex}][type]" value="SERVICE">
-                                                                                                                                            <input type="hidden" class="unit-price-input"
-                                                                                                                                                name="products[${currentIndex}][price]" value="0">
-                                                                                                                                            <input type="hidden" class="subtotal-input"
-                                                                                                                                                name="products[${currentIndex}][subtotal]" value="0">
-                                                                                                                                        </td>
-                                                                                                                                        <td>
-                                                                                                                                            <input type="number" name="products[${currentIndex}][cantidad]"
-                                                                                                                                                class="form-control cantidadservice" value="1" min="1">
-                                                                                                                                        </td>
-                                                                                                                                        <td>
-                                                                                                                                            <input type="number" step="0.01" class="form-control service-price"
-                                                                                                                                                placeholder="Precio" value="0" required>
-                                                                                                                                        </td>
-                                                                                                                                        <td class="subtotal">$0.00</td>
-                                                                                                                                        <td class="subtotal_bs">Bs0.00</td>
-                                                                                                                                        <td class="subtotal_usd">$0.00</td>
-                                                                                                                                        <td>
-                                                                                                                                            <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
-                                                                                                                                        </td>
-                                                                                                                                    </tr>
-                                                                                                                                `;
+                                                                                                                                                        <tr data-price="0" data-index="${currentIndex}">
+                                                                                                                                                            <td>
+                                                                                                                                                                <select name="products[${currentIndex}][service_id]"
+                                                                                                                                                                        class="form-control service-select" required>
+                                                                                                                                                                    <option value="">Seleccione servicio</option>
+                                                                                                                                                                    ${services.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                                                                                                                                                </select>
+                                                                                                                                                                <input type="hidden" name="products[${currentIndex}][type]" value="SERVICE">
+                                                                                                                                                                <input type="hidden" class="unit-price-input"
+                                                                                                                                                                    name="products[${currentIndex}][price]" value="0">
+                                                                                                                                                                <input type="hidden" class="subtotal-input"
+                                                                                                                                                                    name="products[${currentIndex}][subtotal]" value="0">
+                                                                                                                                                            </td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <input type="number" name="products[${currentIndex}][cantidad]"
+                                                                                                                                                                    class="form-control cantidadservice" value="1" min="1">
+                                                                                                                                                            </td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <input type="number" step="0.01" class="form-control service-price"
+                                                                                                                                                                    placeholder="Precio" value="0" required>
+                                                                                                                                                            </td>
+                                                                                                                                                            <td class="subtotal">$0.00</td>
+                                                                                                                                                            <td class="subtotal_bs">Bs0.00</td>
+                                                                                                                                                            <td class="subtotal_usd">$0.00</td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <button type="button" class="btn btn-danger btn-sm remove-row">X</button>
+                                                                                                                                                            </td>
+                                                                                                                                                        </tr>
+                                                                                                                                                    `;
 
             $('#services-table tbody').append(row);
             rowIndex++;
@@ -652,15 +652,31 @@
         // ========================================
         $('form').on('submit', function (e) {
             let totalCOP = parseFloat($('#subtotal').val()) || 0;
-            let totalPaid = parseFloat($('#total-paid').text()) || 0;
+            let totalPaid = 0;
+
             let clientId = $('#client_id').val();
             let isNewClient = $('#new-client-check').is(':checked');
-            console.log(totalCOP, totalPaid, 'tolerabce', TOLERANCE, totalCOP - totalPaid > TOLERANCE);
-            if (totalCOP - totalPaid > TOLERANCE) {
-                console.log('entro');
+
+            let rows = $('#payments-table tbody tr');
+
+            // ===============================
+            // 1. Calcular total pagado REAL
+            // ===============================
+            rows.each(function () {
+                let amount = parseFloat($(this).find('.payment-amount').val()) || 0;
+                let rate = parseFloat($(this).find('.exchange-rate').val()) || 1;
+                totalPaid += amount * rate;
+            });
+
+            let diff = totalPaid - totalCOP;
+
+            // ===============================
+            // 2. Validar fiado
+            // ===============================
+            if (diff < -TOLERANCE) {
                 if (!clientId && !isNewClient) {
                     e.preventDefault();
-                    alert('❌ Para dejar una orden fiada debes seleccionar o aaaaaaaaaa un cliente');
+                    alert('❌ Para dejar una orden fiada debes seleccionar un cliente');
                     return;
                 }
 
@@ -671,21 +687,51 @@
                 }
             }
 
-            let diff = totalPaid - totalCOP;
-
+            // ===============================
+            // 3. Normalizar tolerancia
+            // ===============================
             if (Math.abs(diff) < TOLERANCE) {
+                diff = 0;
                 totalPaid = totalCOP;
-                $('#total-paid').text(totalCOP.toFixed(2));
             }
 
+            // ===============================
+            // 4. Ajustar vuelto (solo una vez)
+            // ===============================
+            if (diff > 0) {
+                let acumulado = 0;
 
+                rows.each(function () {
+                    let amountInput = $(this).find('.payment-amount');
+                    let rate = parseFloat($(this).find('.exchange-rate').val()) || 1;
+                    let base = (parseFloat(amountInput.val()) || 0) * rate;
+
+                    if (acumulado >= totalCOP) {
+                        amountInput.val(0);
+                        $(this).find('.payment-base').text('0.00');
+                        return;
+                    }
+
+                    if (acumulado + base > totalCOP) {
+                        let restante = totalCOP - acumulado;
+                        amountInput.val((restante / rate).toFixed(2));
+                        $(this).find('.payment-base').text(restante.toFixed(2));
+                        acumulado = totalCOP;
+                    } else {
+                        acumulado += base;
+                    }
+                });
+            }
+
+            // ===============================
+            // 5. Validar servicios
+            // ===============================
             let valid = true;
+
             $('#services-table tbody tr').each(function () {
                 let serviceId = $(this).find('.service-select').val();
                 let price = parseFloat($(this).find('.service-price').val()) || 0;
-                if (!serviceId || price <= 0) {
-                    valid = false;
-                }
+                if (!serviceId || price <= 0) valid = false;
             });
 
             if (!valid) {
@@ -694,11 +740,12 @@
                 return;
             }
 
+            // ===============================
+            // 6. Validar productos
+            // ===============================
             $('#products-table tbody tr').each(function () {
                 let productSelect = $(this).find('.product-select');
-                if (productSelect.length && !productSelect.val()) {
-                    valid = false;
-                }
+                if (productSelect.length && !productSelect.val()) valid = false;
             });
 
             if (!valid) {
@@ -706,34 +753,17 @@
                 alert('❌ Todos los productos deben estar seleccionados');
                 return;
             }
-            let $btn = $('#btn-submit-order');
-            $btn.prop('disabled', true);
 
-            // 2. Mostrar el loader
+            // ===============================
+            // 7. UI submit
+            // ===============================
+            let $btn = $('#btn-submit-order');
+            let $spinner = $btn.find('.spinner-border');
+            let $text = $btn.find('.btn-text');
+
+            $btn.prop('disabled', true);
             $spinner.removeClass('d-none');
             $text.text(' Procesando...');
-
-            let acumulado = 0;
-            $('#payments-table tbody tr').each(function () {
-                let amountInput = $(this).find('.payment-amount');
-                let rate = parseFloat($(this).find('.exchange-rate').val()) || 1;
-                let base = (parseFloat(amountInput.val()) || 0) * rate;
-
-                if (acumulado >= totalCOP) {
-                    amountInput.val(0);
-                    $(this).find('.payment-base').text('0.00');
-                    return;
-                }
-
-                if (acumulado + base > totalCOP) {
-                    let restante = totalCOP - acumulado;
-                    amountInput.val((restante / rate).toFixed(2));
-                    $(this).find('.payment-base').text(restante.toFixed(2));
-                    acumulado = totalCOP;
-                } else {
-                    acumulado += base;
-                }
-            });
 
             console.log('✅ Formulario válido', { totalCOP, totalPaid });
         });

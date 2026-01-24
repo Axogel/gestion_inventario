@@ -51,7 +51,7 @@ Route::middleware([Authenticate::class])->group(function () {
     Route::get('deudores', [OrdenEntregaController::class, 'deudores'])->name('deudores');
     Route::put('orden/deuda/{id}/pagar', [OrdenEntregaController::class, 'paidDebit'])
         ->name('orden.paidDebit');
-
+    Route::post('/orden/{id}/update-payments', [OrdenEntregaController::class, 'updatePayments'])->name('orden.updatePayments');
     Route::resource('expenses', ExpenseController::class);
     Route::resource('factura', FacturaController::class);
     Route::resource('notificacion', NotificacionController::class);

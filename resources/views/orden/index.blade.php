@@ -55,23 +55,31 @@
                     </button>
                 </div>
             @endif
-            <form action="{{ route('orden.index') }}" method="GET">
-                <div class="row align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label">Desde:</label>
-                        <input type="date" name="desde" value="{{ $desde ?? date('Y-m-d') }}" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Hasta:</label>
-                        <input type="date" name="hasta" value="{{ $hasta ?? date('Y-m-d') }}" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-secondary btn-block">
-                            <i class="fa fa-filter mr-2"></i>Filtrar Rango
-                        </button>
-                    </div>
-                </div>
-            </form>
+<form action="{{ route('orden.index') }}" method="GET">
+    <div class="row align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Desde:</label>
+            {{-- Prioridad: 1. El filtro aplicado, 2. La variable del controlador, 3. Hoy --}}
+            <input type="date" name="desde" 
+                value="{{ request('desde') ?? ( now()->toDateString()) }}" 
+                class="form-control">
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Hasta:</label>
+            <input type="date" name="hasta" 
+                value="{{ request('hasta') ?? ( now()->toDateString()) }}" 
+                class="form-control">
+        </div>
+
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-secondary btn-block">
+                <i class="fa fa-filter mr-2"></i> Filtrar Rango
+            </button>
+        </div>
+    </div>
+</form>
+
         </div>
     </div>
 
@@ -167,6 +175,13 @@
                                                 class="btn btn-sm btn-outline-primary btn-factura" title="Factura">
                                                 <i class="fa fa-file-invoice mr-1"></i> Factura
                                             </a>
+                                <button 
+    type="button"
+    class="btn btn-sm btn-outline-primary btn-edit"
+    data-orden='@json($orden)'
+>
+              <i class="fa fa-file-invoice mr-1"></i> Editar
+</button>
                                         </td>
                                     </tr>
                                 @empty
@@ -181,6 +196,33 @@
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="modalEditarPagos" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Métodos de Pago - Orden #<span id="edit-orden-id-text"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="form-editar-pagos">
+                @csrf
+                <input type="hidden" name="orden_id" id="edit-orden-id">
+                <div class="modal-body">
+                    <div id="contenedor-pagos-edit">
+                        </div>
+                    <div class="alert alert-info mt-3">
+                        <strong>Total de la Orden: </strong> <span id="edit-total-orden"></span> COP
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-guardar-pagos">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
         <div class="modal fade" id="modalDevolucion" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -290,7 +332,14 @@
         </div>
     </div>
 </div>
+<div class="card-body">
+    <div class="table-responsive">
+        </div>
 
+    <div class="d-flex justify-content-center mt-4">
+        {{ $ordenes->appends(request()->query())->links() }}
+    </div>
+</div>
     </div>
 @endsection
 
@@ -310,7 +359,6 @@ const auxDvisas = divisas.reduce((acc, d) => {
     acc[d.name] = parseFloat(d.tasa);
     return acc;
 }, {});
-console.log(auxDvisas, 'auxDvisas')
 $('#product-search-cambio').on('input', function () {
     const query = $(this).val().toLowerCase().trim();
     const resultsBox = $('#product-results-cambio');
@@ -348,6 +396,175 @@ $('#product-search-cambio').on('input', function () {
 
     resultsBox.show();
 });
+function getPaymentConfig(selectValue) {
+    const map = {
+        'EFECTIVO_COP': { method: 'EFECTIVO', currency: 'COP' },
+        'EFECTIVO_USD': { method: 'EFECTIVO', currency: 'USD' },
+        'TRANSFERENCIA_COP': { method: 'TRANSFERENCIA', currency: 'COP' },
+        'TRANSFERENCIA_BS': { method: 'TRANSFERENCIA', currency: 'Bs' },
+        'PUNTO': { method: 'PUNTO', currency: 'Bs' }
+    };
+
+    return map[selectValue] || { method: 'EFECTIVO', currency: 'COP' };
+}
+
+// Abrir el modal y cargar pagos
+$('.btn-edit').on('click', function () {
+    const orden = $(this).data('orden');
+    $('#edit-orden-id').val(orden.id);
+    $('#edit-orden-id-text').text(orden.id);
+    $('#edit-total-orden').text(parseFloat(orden.subtotal).toLocaleString('es-CO'));
+
+    const contenedor = $('#contenedor-pagos-edit');
+    contenedor.empty();
+
+orden.pagos.forEach((pago, index) => {
+
+    const visualValue =
+        pago.method === 'EFECTIVO' && pago.currency === 'USD' ? 'EFECTIVO_USD' :
+        pago.method === 'EFECTIVO' ? 'EFECTIVO_COP' :
+        pago.currency === 'COP' ? 'TRANSFERENCIA_COP' :
+        pago.currency === 'Bs' ? 'TRANSFERENCIA_BS' :
+        'PUNTO';
+
+    contenedor.append(`
+        <div class="card border p-3 mb-2 shadow-sm item-pago-edit">
+            <input type="hidden" name="pagos[${index}][id]" value="${pago.id}">
+            <input type="hidden" name="pagos[${index}][method]" class="real-method">
+            <input type="hidden" name="pagos[${index}][currency]" class="real-currency">
+
+            <div class="row">
+                <div class="col-6">
+                    <label>Método</label>
+                    <select class="form-control form-control-sm pago-metodo-select" data-prev-divisa="${pago.currency}">
+                        <option value="EFECTIVO_COP" ${visualValue === 'EFECTIVO_COP' ? 'selected' : ''}>Efectivo COP</option>
+                        <option value="EFECTIVO_USD" ${visualValue === 'EFECTIVO_USD' ? 'selected' : ''}>Efectivo USD</option>
+                        <option value="TRANSFERENCIA_COP" ${visualValue === 'TRANSFERENCIA_COP' ? 'selected' : ''}>Transferencia COP</option>
+                        <option value="TRANSFERENCIA_BS" ${visualValue === 'TRANSFERENCIA_BS' ? 'selected' : ''}>Pago móvil (Bs)</option>
+                        <option value="PUNTO" ${visualValue === 'PUNTO' ? 'selected' : ''}>PUNTO</option>
+                    </select>
+                </div>
+
+                <div class="col-6">
+                    <label>Monto (<span class="label-divisa">${pago.currency}</span>)</label>
+                    <input type="number" step="0.01"
+                           name="pagos[${index}][amount]"
+                           class="form-control form-control-sm pago-monto-input"
+                           value="${pago.amount}">
+                </div>
+            </div>
+        </div>
+    `);
+});
+
+
+
+    $('#modalEditarPagos').modal('show');
+});
+
+// Función auxiliar para obtener configuración de pago
+function getPaymentConfig(selectValue) {
+    const map = {
+        'EFECTIVO_COP': { method: 'EFECTIVO', currency: 'COP' },
+        'EFECTIVO_USD': { method: 'EFECTIVO', currency: 'USD' },
+        'TRANSFERENCIA_COP': { method: 'TRANSFERENCIA', currency: 'COP' },
+        'TRANSFERENCIA_BS': { method: 'TRANSFERENCIA', currency: 'Bs' },
+        'PUNTO': { method: 'PUNTO', currency: 'Bs' }
+    };
+    return map[selectValue] || { method: 'EFECTIVO', currency: 'COP' };
+}
+
+// Evento unificado para cambio de método de pago
+$(document).on('change', '.pago-metodo-select', function () {
+    const select = $(this);
+    const row = select.closest('.item-pago-edit');
+    const inputMonto = row.find('.pago-monto-input');
+    
+    // 1. Obtener configuración nueva
+    const config = getPaymentConfig(select.val());
+    const divisaNueva = config.currency;
+
+    // 2. Actualizar campos ocultos y label
+    row.find('.real-method').val(config.method);
+    row.find('.real-currency').val(divisaNueva);
+    row.find('.label-divisa').text(divisaNueva);
+
+    // 3. Manejo de conversión de moneda
+    // Si no tiene data-prev-divisa, asumimos que es la primera vez (la divisa que tenía al cargar)
+    // Pero en el modal load ya deberíamos haberlo seteado. Si no, lo inferimos del value actual antes del cambio?
+    // El "change" ocurre después de cambiar. 
+    // Mejor estrategia: guardar la divisa anterior en data-prev-divisa AL CARGAR el modal.
+    // O bien, usar el focus para guardar el previo? No, mejor al cargar.
+    
+    // Sin embargo, si el usuario cambia varias veces, necesitamos el "previo" inmediato.
+    // El HTML generado dinámicamente NO tiene data-prev-divisa inicial. Lo agregaremos.
+    
+    let divisaAnterior = select.data('prev-divisa');
+    
+    // Si es la primera vez que cambiamos y no está seteado, intentamos deducirlo o usar default
+    if (!divisaAnterior) {
+        // Esto puede pasar si no se inicializó en el loop.
+        // Vamos a asumir que el valor "visual" inicial ya nos dice la divisa. 
+        // Pero aquí el value YA cambió.
+        // FIX: En el loop de carga, agregar data-prev-divisa al select.
+        // Por ahora, si falla, retornamos para evitar NaN.
+        console.warn('No se encontró divisa anterior para conversión');
+        select.data('prev-divisa', divisaNueva); // Set for next time
+        return;
+    }
+
+    if (divisaAnterior === divisaNueva) return;
+
+    let montoActual = parseFloat(inputMonto.val()) || 0;
+
+    // Conversión
+    // Tasa origen
+    const tasaAnterior = auxDvisas[divisaAnterior] || 1;
+    // Tasa destino
+    const tasaNueva = auxDvisas[divisaNueva] || 1;
+
+    // Convertir a base (COP) -> luego a destino
+    // monto * tasaAnterior = COP
+    // COP / tasaNueva = destino
+    
+    const montoEnCOP = montoActual * tasaAnterior;
+    const nuevoMonto = montoEnCOP / tasaNueva;
+
+    // Actualizar input con tolerancia/redondeo (2 decimales estándar)
+    inputMonto.val(nuevoMonto.toFixed(2));
+    
+    // Actualizar el "previo" para el siguiente cambio
+    select.data('prev-divisa', divisaNueva);
+
+    // Feedback visual
+    inputMonto.css('background-color', '#fff3cd');
+    setTimeout(() => inputMonto.css('background-color', ''), 500);
+});
+
+// Enviar formulario por AJAX
+$('#form-editar-pagos').on('submit', function (e) {
+    e.preventDefault();
+    const ordenId = $('#edit-orden-id').val();
+    const formData = $(this).serialize();
+
+    $.ajax({
+        url: `/orden/${ordenId}/update-payments`,
+        type: 'POST',
+        data: formData,
+        beforeSend: function() {
+            $('#btn-guardar-pagos').prop('disabled', true).text('Guardando...');
+        },
+        success: function(response) {
+            Swal.fire('Actualizado', 'Métodos de pago actualizados correctamente', 'success')
+                .then(() => location.reload());
+        },
+        error: function(xhr) {
+            $('#btn-guardar-pagos').prop('disabled', false).text('Guardar Cambios');
+            Swal.fire('Error', 'No se pudieron actualizar los pagos', 'error');
+        }
+    });
+});
+
 $('.btn-devolucion').on('click', function () {
     ordenSeleccionada = $(this).data('orden');
     $('#orden_id').val(ordenSeleccionada.id);
@@ -402,6 +619,7 @@ $(document).ready(function() {
     // Forzar cierre al hacer clic en cualquier elemento con data-dismiss="modal"
     $('[data-dismiss="modal"]').on('click', function() {
         $('#modalDevolucion').modal('hide');
+        $('#modalEditarPagos').modal('hide');
     });
 });
 

@@ -38,7 +38,7 @@ class OrdenEntregaController extends Controller
         $ordenes = ordenEntrega::whereBetween('created_at', [
             Carbon::parse($desde)->startOfDay(),
             Carbon::parse($hasta)->endOfDay()
-        ])->orderBy('created_at', 'desc')->get();
+        ])->orderBy('created_at', 'desc')->paginate(10);
 
 
         $products = Inventario::all();
@@ -53,7 +53,43 @@ class OrdenEntregaController extends Controller
 
         return view('orden.index', compact('ordenes'));
     }
+    public function updatePayments(Request $request, $id)
+    {
+        $request->validate([
+            'pagos' => 'required|array',
+            'pagos.*.id' => 'required|exists:orden_pagos,id',
+            'pagos.*.method' => 'required|string',
+            'pagos.*.amount' => 'required|numeric',
+        ]);
 
+
+        $paymentsRelated = Payment::where('orden_id', $request->id)->get();
+
+        try {
+            DB::transaction(function () use ($request) {
+
+
+                foreach ($request->pagos as $pagoData) {
+                    $pago = OrdenPagos::findOrFail($pagoData['id']);
+
+                    // Recalculamos el monto base si el método cambió o el monto cambió
+                    // (Asumiendo que mantienes la tasa de cambio original del registro)
+                    $amountBase = $pagoData['amount'] * $pago->exchange_rate;
+
+                    $pago->update([
+                        'method' => $pagoData['method'],
+                        'amount' => $pagoData['amount'],
+                        'currency' => $pagoData['currency'],
+                        'amount_base' => $amountBase
+                    ]);
+                }
+            });
+
+            return response()->json(['message' => 'Pagos actualizados']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
 
     public static function metricas()
     {
@@ -235,6 +271,8 @@ class OrdenEntregaController extends Controller
                         'cantidad' => $item['cantidad'],
                         'subtotal' => $lineSubtotal,
                         'service_id' => $item['service_id'] ?? null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
                 }
                 OrdenEntregaProducto::insert($itemsInsert);
@@ -263,6 +301,8 @@ class OrdenEntregaController extends Controller
                             'exchange_rate' => $pago['exchange_rate'],
                             'amount_base' => $amountBase,
                             'type' => 'sale',
+                            'created_at' => now(),
+                            'updated_at' => now(),
                         ];
                     }
                 }
@@ -293,6 +333,8 @@ class OrdenEntregaController extends Controller
                         'exchange_rate' => 1,
                         'amount_base' => $subtotal,
                         'type' => 'debt',
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
 
                     $paymentsItem[] = [
@@ -303,6 +345,8 @@ class OrdenEntregaController extends Controller
                         'monto_base' => $totalPagadoBase,
                         'metodo_pago' => implode(' + ', array_unique($metodos)),
                         'referencia' => null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
 
                 } else {
@@ -314,6 +358,8 @@ class OrdenEntregaController extends Controller
                         'monto_base' => $subtotal,
                         'metodo_pago' => implode(' + ', array_unique($metodos)),
                         'referencia' => null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
                 }
                 Payment::insert($paymentsItem);
