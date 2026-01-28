@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule; // <--- No olvides importar esto arriba
 
 class ReturnOrderRequest extends FormRequest
 {
@@ -19,16 +20,14 @@ class ReturnOrderRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
+
     public function rules()
     {
         return [
             'orden_id' => 'required|exists:orden_entregas,id',
             'accion' => 'required|in:refund,change',
             'items_devolucion' => 'required|array|min:1',
-            'items_devolucion.*.product_id' => [
-                'required',
-                'exists:orden_entregas_productos,product_id'
-            ],
+            'items_devolucion.*.product_id' => 'required|exists:orden_entregas_productos,product_id',
             'items_devolucion.*.cantidad' => 'required|integer|min:1',
             'items_devolucion.*.subtotal' => 'required|numeric|min:0',
             'total_devolucion' => 'required|numeric|min:0',
@@ -42,8 +41,18 @@ class ReturnOrderRequest extends FormRequest
             'productos_cambio.*.cantidad' => 'required_with:productos_cambio|integer|min:1',
             'productos_cambio.*.precio' => 'required_with:productos_cambio|numeric|min:0',
             'total_cambio' => 'required_if:accion,change|numeric|min:0',
+
+            // CORRECCIÓN AQUÍ:
             'diferencia' => 'nullable|numeric',
-            'metodo_pago_diferencia' => 'required_if:diferencia,!=,0|in:EFECTIVO,TRANSFERENCIA,PAGOMOVIL,EFECTIVOUSD,TRANSFERENCIACOP',
+            'metodo_pago_diferencia' => [
+                'nullable', // <--- AGREGA ESTO AQUÍ
+                Rule::requiredIf(function () {
+                    return $this->accion === 'change' &&
+                        $this->diferencia !== null &&
+                        (float) $this->diferencia != 0;
+                }),
+                'in:EFECTIVO,TRANSFERENCIA,PAGOMOVIL,EFECTIVOUSD,TRANSFERENCIACOP'
+            ],
         ];
     }
 
