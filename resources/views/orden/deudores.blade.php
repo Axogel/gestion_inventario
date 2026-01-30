@@ -116,8 +116,11 @@
                                     <option value="EFECTIVO" data-currency="COP">Efectivo (COP)</option>
                                     <option value="EFECTIVO" data-currency="USD">Efectivo (USD)</option>
                                     <option value="PAGOMOVIL" data-currency="Bs">Pago Móvil (Bs)</option>
+                                    <option value="PUNTO" data-currency="Bs">Punto (Bs)</option>
+
                                     <option value="TRANSFERENCIA" data-currency="Bs">Transferencia (Bs)</option>
                                     <option value="TRANSFERENCIA" data-currency="COP">Transferencia (COP)</option>
+
                                 </select>
                             </div>
 
@@ -246,6 +249,8 @@
                     metodoLimpio = 'PAGOMOVIL';
                 } else if (valorOriginal.includes('EFECTIVO')) {
                     metodoLimpio = 'EFECTIVO';
+                } else if (valorOriginal.includes('PUNTO')) {
+                    metodoLimpio = 'PUNTO'
                 }
 
                 // Cambiamos el valor del select justo antes de que viaje al backend
@@ -253,6 +258,14 @@
                 // o cambiando el valor del select (esta es la forma más rápida)
                 selectMetodo.append(`<option value="${metodoLimpio}" selected>${metodoLimpio}</option>`);
                 selectMetodo.val(metodoLimpio);
+            });
+        });
+
+        $(document).ready(function () {
+            // Forzar cierre al hacer clic en cualquier elemento con data-dismiss="modal"
+            $('[data-dismiss="modal"]').on('click', function () {
+                $('#modalPagoDeuda').modal('hide');
+                // $('#modalEditarPagos').modal('hide');
             });
         });
     </script>
